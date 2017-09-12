@@ -1,0 +1,17 @@
+project: SWG
+lead_project: Open Source Security
+label: Security
+upstream: "Yes"
+acceptance_criteria:
+        - |
+          ||Criteria||Status||Closeout Notes/Links||
+          |Patches delivered to [OP-TEE |https://github.com/OP-TEE]|(x)|Patches
+           can be found [here (FIXME update link) |https://github.com/OP-TEE]|
+          |No regressions introduced in xtest|(x)|To-Do add link to Travis log (running QEMU / xtest)|
+
+          Legend:
+          ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||
+issuetype: Epic
+summary: My summary
+epic_name: My Epic
+description: My description
