@@ -665,18 +665,27 @@ def write_info_node(f, issue):
     write_sponsor_node(f, sponsor_to_list(issue.fields.customfield_10101))
     f.write("</node>\n")
 
-def start_new_issue_node(f, issue, color = "#990000"):
+def write_single_story_node(f, issue):
+    f.write("<node TEXT=\"info\" FOLDED=\"true\" COLOR=\"#000000\">\n")
+    write_assignee_node(f, issue.fields.assignee)
+    f.write("</node>\n")
+
+def start_new_issue_node(f, issue, folded="false", color = "#990000"):
     issue_id = str(issue)
-    f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"%s\">\n"
-            % (g_server + "/browse/" + issue_id, issue_id + ": " +
-                issue.fields.summary, color))
+    f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"%s\" COLOR=\"%s\">\n"
+            % (g_server + "/browse/" + issue_id,
+               issue_id + ": " + issue.fields.summary.replace("\"", "'"),
+               folded,
+               color))
 
 def end_new_issue_node(f):
     f.write("</node>\n")
 
-def write_epic_node(f, key):
+def write_story_node(f, key):
     global g_jira
     issue = g_jira.issue(key)
+
+    print(str(issue) + " (Story)")
 
     if "Closed" in issue.fields.status.name:
         return
@@ -685,21 +694,45 @@ def write_epic_node(f, key):
     if "In Progress" in issue.fields.status.name:
         color = "#009900"
 
-    start_new_issue_node(f, issue, color)
-    write_info_node(f, issue)
-    #write_epic_node(f, issue)
+    start_new_issue_node(f, issue, "true", color)
+    write_single_story_node(f, issue)
     end_new_issue_node(f)
 
-def write_initiative_node(f, issue):
+def write_epic_node(f, key):
+    global g_jira
+    issue = g_jira.issue(key)
+
+    print(str(issue) + " (Epic)")
+
+    if "Closed" in issue.fields.status.name:
+        return
+
     color = "#990000" # Red
     if "In Progress" in issue.fields.status.name:
         color = "#009900"
 
-    start_new_issue_node(f, issue, color)
+    start_new_issue_node(f, issue, "true", color)
     write_info_node(f, issue)
 
     for i in issue.fields.issuelinks:
-        write_epic_node(f, str(i.inwardIssue.key))
+        if "inwardIssue" in i.raw:
+            write_story_node(f, str(i.inwardIssue.key))
+
+    end_new_issue_node(f)
+
+def write_initiative_node(f, issue):
+    print(str(issue) + " (Initiative)")
+
+    color = "#990000" # Red
+    if "In Progress" in issue.fields.status.name:
+        color = "#009900"
+
+    start_new_issue_node(f, issue, "false", color)
+    write_info_node(f, issue)
+
+    for i in issue.fields.issuelinks:
+        if "inwardIssue" in i.raw:
+            write_epic_node(f, str(i.inwardIssue.key))
 
     end_new_issue_node(f)
 
