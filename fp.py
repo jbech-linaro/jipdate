@@ -641,8 +641,9 @@ def get_editor():
 
 def sponsor_to_list(s):
     sponsors = []
-    for i in s:
-        sponsors.append(str(i.value))
+    if s is not None:
+        for i in s:
+            sponsors.append(str(i.value))
     return sponsors
 
 def write_assignee_node(f, assignee):
@@ -664,10 +665,11 @@ def write_info_node(f, issue):
     write_sponsor_node(f, sponsor_to_list(issue.fields.customfield_10101))
     f.write("</node>\n")
 
-def start_new_issue_node(f, issue):
+def start_new_issue_node(f, issue, color = "#990000"):
     issue_id = str(issue)
-    f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\">\n"
-            % (g_server + "/browse/" + issue_id, issue_id + ": " + issue.fields.summary))
+    f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"%s\">\n"
+            % (g_server + "/browse/" + issue_id, issue_id + ": " +
+                issue.fields.summary, color))
 
 def end_new_issue_node(f):
     f.write("</node>\n")
@@ -675,19 +677,30 @@ def end_new_issue_node(f):
 def write_epic_node(f, key):
     global g_jira
     issue = g_jira.issue(key)
-    start_new_issue_node(f, issue)
-    #write_info_node(f, issue)
+
+    if "Closed" in issue.fields.status.name:
+        return
+
+    color = "#990000" # Red
+    if "In Progress" in issue.fields.status.name:
+        color = "#009900"
+
+    start_new_issue_node(f, issue, color)
+    write_info_node(f, issue)
     #write_epic_node(f, issue)
     end_new_issue_node(f)
 
 def write_initiative_node(f, issue):
-    start_new_issue_node(f, issue)
+    color = "#990000" # Red
+    if "In Progress" in issue.fields.status.name:
+        color = "#009900"
+
+    start_new_issue_node(f, issue, color)
     write_info_node(f, issue)
 
     for i in issue.fields.issuelinks:
         write_epic_node(f, str(i.inwardIssue.key))
-    #link = "%s/%s" % (g_server, issue)
-    #l = "<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#FF0000\"/>" %
+
     end_new_issue_node(f)
 
 def write_parent_node(f, n):
