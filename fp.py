@@ -82,6 +82,10 @@ def get_parser():
             default=False, \
             help='Load all Jira issues, not just the once marked in progress.')
 
+    parser.add_argument('--desc', required=False, action="store_true", \
+            default=False, \
+            help='Add description to the issues')
+
     return parser
 
 ################################################################################
@@ -263,6 +267,18 @@ def write_info_node(f, issue):
     f.write("</node>\n")
 
 
+def write_description(f, issue):
+    try:
+        f.write("<richcontent TYPE=\"DETAILS\" HIDDEN=\"true\"\n>")
+        f.write("<html>\n<head>\n</head>\n<body>\n<p>\n")
+        f.write(issue.fields.description)
+    except UnicodeEncodeError:
+        vprint("UnicodeEncodeError in description in %s" % str(issue))
+        f.write("Unicode error in description, please go to Jira\n")
+    f.write("\n</p>\n</body>\n</html>\n</richcontent>\n")
+
+
+
 def start_new_issue_node(f, issue, folded="false", color = "#990000"):
     global g_all_issues
     issue_id = str(issue)
@@ -314,6 +330,7 @@ def write_story_node(f, key):
 ################################################################################
 def write_epic_node(f, key):
     global g_jira
+    global g_args
     issue = g_jira.issue(key)
 
     print(str(issue) + " (Epic)")
@@ -328,6 +345,9 @@ def write_epic_node(f, key):
 
     start_new_issue_node(f, issue, "true", color)
     write_info_node(f, issue)
+
+    if g_args.desc:
+        write_description(f, issue)
 
     for i in issue.fields.issuelinks:
         if "inwardIssue" in i.raw:
