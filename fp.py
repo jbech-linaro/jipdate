@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import print_function
 
@@ -14,6 +15,7 @@ import json
 import os
 import re
 import sys
+import unicodedata
 import yaml
 
 TEST_SERVER = 'https://dev-projects.linaro.org'
@@ -233,7 +235,11 @@ def write_sponsor_node(f, sponsors):
 
 def write_info_node(f, issue):
     f.write("<node TEXT=\"info\" FOLDED=\"true\" COLOR=\"#000000\">\n")
-    write_assignee_node(f, issue.fields.assignee)
+    try:
+        write_assignee_node(f, issue.fields.assignee)
+    except UnicodeEncodeError:
+        write_assignee_node(f, "Unknown")
+
     try:
         write_sponsor_node(f, sponsor_to_list(issue.fields.customfield_10101))
     except AttributeError:
@@ -258,7 +264,10 @@ def end_new_issue_node(f):
 ################################################################################
 def write_single_story_node(f, issue):
     f.write("<node TEXT=\"info\" FOLDED=\"true\" COLOR=\"#000000\">\n")
-    write_assignee_node(f, issue.fields.assignee)
+    try:
+        write_assignee_node(f, issue.fields.assignee)
+    except UnicodeEncodeError:
+        write_assignee_node(f, "Unknown")
     f.write("</node>\n")
 
 
