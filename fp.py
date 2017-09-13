@@ -234,7 +234,10 @@ def write_sponsor_node(f, sponsors):
 def write_info_node(f, issue):
     f.write("<node TEXT=\"info\" FOLDED=\"true\" COLOR=\"#000000\">\n")
     write_assignee_node(f, issue.fields.assignee)
-    write_sponsor_node(f, sponsor_to_list(issue.fields.customfield_10101))
+    try:
+        write_sponsor_node(f, sponsor_to_list(issue.fields.customfield_10101))
+    except AttributeError:
+        vprint("No sponsor")
     f.write("</node>\n")
 
 
