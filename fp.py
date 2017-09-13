@@ -392,7 +392,7 @@ def get_orphans(jira, f, key):
             else:
                 orphans.append(i)
 
-    f.write("<node TEXT=\"Orphans\" FOLDED=\"false\" COLOR=\"#000000\">\n")
+    f.write("<node TEXT=\"Orphans\" POSITION=\"left\" FOLDED=\"false\" COLOR=\"#000000\">\n")
     for issue in orphans:
         if issue.fields.assignee is None:
             color = "#990000" # Red
