@@ -439,7 +439,7 @@ def main(argv):
 
     f = open_file(key + ".mm")
     f.write("<map version=\"freeplane 1.6.0\">\n")
-    f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\">\n"
+    f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\" LOCALIZED_STYLE_REF=\"AutomaticLayout.level.root\">\n"
         % (g_server + "/projects/" + key, key))
 
     get_initiatives(jira, f, key)
