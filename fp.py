@@ -28,6 +28,8 @@ g_server = PRODUCTION_SERVER
 g_args = None
 g_jira = None
 
+g_all_issues = []
+
 # Yaml instance, opened at the beginning of main and then kept available
 # globally.
 g_yml_config = None
@@ -248,12 +250,14 @@ def write_info_node(f, issue):
 
 
 def start_new_issue_node(f, issue, folded="false", color = "#990000"):
+    global g_all_issues
     issue_id = str(issue)
     f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"%s\" COLOR=\"%s\">\n"
             % (g_server + "/browse/" + issue_id,
                issue_id + ": " + issue.fields.summary.replace("\"", "'"),
                folded,
                color))
+    g_all_issues.append(issue_id)
 
 
 def end_new_issue_node(f):
@@ -362,13 +366,7 @@ def write_initiative_node(f, issue):
     end_new_issue_node(f)
 
 
-def get_initiatives(jira, key):
-    f = open_file(key + ".mm")
-    f.write("<map version=\"freeplane 1.6.0\">\n")
-
-    f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\">\n"
-        % (g_server + "/projects/" + key, key))
-
+def get_initiatives(jira, f, key):
     jql = "project=%s AND issuetype in (Initiative)" % (key)
     initiatives = jira.search_issues(jql)
 
@@ -376,8 +374,27 @@ def get_initiatives(jira, key):
         issue = jira.issue(i.key)
         write_initiative_node(f, issue)
 
-    f.write("\n</node>\n</map>")
-    f.close()
+def get_orphans(jira, f, key):
+    global g_all_issues
+
+    jql = "project=%s" % (key)
+    all_issues = jira.search_issues(jql)
+
+    orphans = []
+    for i in all_issues:
+        if str(i) not in g_all_issues:
+            if "Closed" in i.fields.status.name:
+                continue
+            if "Resolved" in i.fields.status.name:
+                continue
+            else:
+                orphans.append(i)
+
+    f.write("<node TEXT=\"Orphans\" FOLDED=\"false\" COLOR=\"#000000\">\n")
+    for issue in orphans:
+        start_new_issue_node(f, issue, "true", "#000000")
+        end_new_issue_node(f)
+    f.write("\n</node>\n")
 
 ################################################################################
 # Main function
@@ -404,7 +421,16 @@ def main(argv):
     if g_args.project:
         key = g_args.project
 
-    get_initiatives(jira, key)
+    f = open_file(key + ".mm")
+    f.write("<map version=\"freeplane 1.6.0\">\n")
+    f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\">\n"
+        % (g_server + "/projects/" + key, key))
+
+    get_initiatives(jira, f, key)
+    get_orphans(jira, f, key)
+
+    f.write("\n</node>\n</map>")
+    f.close()
 
 if __name__ == "__main__":
     main(sys.argv)
