@@ -252,9 +252,11 @@ def write_info_node(f, issue):
 def start_new_issue_node(f, issue, folded="false", color = "#990000"):
     global g_all_issues
     issue_id = str(issue)
+    summary = issue.fields.summary.replace("\"", "'")
+    summary = summary.replace("&", "and")
     f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"%s\" COLOR=\"%s\">\n"
             % (g_server + "/browse/" + issue_id,
-               issue_id + ": " + issue.fields.summary.replace("\"", "'"),
+               issue_id + ": " + summary,
                folded,
                color))
     g_all_issues.append(issue_id)
