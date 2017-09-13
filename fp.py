@@ -280,9 +280,20 @@ def write_story_node(f, key):
     if "Closed" in issue.fields.status.name:
         return
 
-    color = "#990000" # Red
-    if "In Progress" in issue.fields.status.name:
-        color = "#009900"
+    if "Resolved" in issue.fields.status.name:
+        return
+
+    color = ""
+    if issue.fields.assignee is None:
+        color = "#990000" # Red
+    elif "In Progress" in issue.fields.status.name:
+        color = "#009900" # Green
+    elif "Blocked" in issue.fields.status.name:
+        color = "#ff6600" # Orange
+    elif "To Do" in issue.fields.status.name:
+        color = "#ff6600" # Orange
+    else:
+        color = "#990000" # Red
 
     start_new_issue_node(f, issue, "true", color)
     write_single_story_node(f, issue)
@@ -300,9 +311,20 @@ def write_epic_node(f, key):
     if "Closed" in issue.fields.status.name:
         return
 
-    color = "#990000" # Red
-    if "In Progress" in issue.fields.status.name:
-        color = "#009900"
+    if "Resolved" in issue.fields.status.name:
+        return
+
+    color = ""
+    if issue.fields.assignee is None:
+        color = "#990000" # Red
+    elif "In Progress" in issue.fields.status.name:
+        color = "#009900" # Green
+    elif "Blocked" in issue.fields.status.name:
+        color = "#ff6600" # Orange
+    elif "To Do" in issue.fields.status.name:
+        color = "#ff6600" # Orange
+    else:
+        color = "#990000" # Red
 
     start_new_issue_node(f, issue, "true", color)
     write_info_node(f, issue)
@@ -318,10 +340,17 @@ def write_epic_node(f, key):
 ################################################################################
 def write_initiative_node(f, issue):
     print(str(issue) + " (Initiative)")
-
-    color = "#990000" # Red
-    if "In Progress" in issue.fields.status.name:
-        color = "#009900"
+    color = ""
+    if issue.fields.assignee is None:
+        color = "#990000" # Red
+    elif "In Progress" in issue.fields.status.name:
+        color = "#009900" # Green
+    elif "Blocked" in issue.fields.status.name:
+        color = "#ff6600" # Orange
+    elif "To Do" in issue.fields.status.name:
+        color = "#ff6600" # Orange
+    else:
+        color = "#990000" # Red
 
     start_new_issue_node(f, issue, "false", color)
     write_info_node(f, issue)
