@@ -392,7 +392,17 @@ def get_orphans(jira, f, key):
 
     f.write("<node TEXT=\"Orphans\" FOLDED=\"false\" COLOR=\"#000000\">\n")
     for issue in orphans:
-        start_new_issue_node(f, issue, "true", "#000000")
+        if issue.fields.assignee is None:
+            color = "#990000" # Red
+        elif "In Progress" in issue.fields.status.name:
+            color = "#009900" # Green
+        elif "Blocked" in issue.fields.status.name:
+            color = "#ff6600" # Orange
+        elif "To Do" in issue.fields.status.name:
+            color = "#ff6600" # Orange
+        else:
+            color = "#990000" # Red
+        start_new_issue_node(f, issue, "true", color)
         end_new_issue_node(f)
     f.write("\n</node>\n")
 
