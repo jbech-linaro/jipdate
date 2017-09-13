@@ -14,8 +14,6 @@ import json
 import os
 import re
 import sys
-import sys
-import tempfile
 import yaml
 
 TEST_SERVER = 'https://dev-projects.linaro.org'
@@ -64,8 +62,8 @@ def get_parser():
     """ Takes care of script argument parsing. """
     parser = ArgumentParser(description='Script used to generate Freeplane mindmap files')
 
-    parser.add_argument('-p', required=False, action="store_true", \
-            default=False, \
+    parser.add_argument('-p', '--project', required=False, action="store", \
+            default="SWG", \
             help='Project type (SWG, VIRT, KWG etc)')
 
     parser.add_argument('-t', required=False, action="store_true", \
@@ -323,11 +321,10 @@ def write_initiative_node(f, issue):
     end_new_issue_node(f)
 
 
-def get_initiatives(jira):
-    f = open_file("swg.mm")
+def get_initiatives(jira, key):
+    f = open_file(key + ".mm")
     f.write("<map version=\"freeplane 1.6.0\">\n")
 
-    key = "SWG"
     f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\">\n"
         % (g_server + "/projects/" + key, key))
 
@@ -354,6 +351,7 @@ def main(argv):
     # accessible everywhere after this call.
     initiate_config(g_config_filename)
     
+    key = "SWG"
     parser = get_parser()
 
     # The parser arguments are accessible everywhere after this call.
@@ -362,7 +360,10 @@ def main(argv):
     jira, username = get_jira_instance(g_args.t)
     g_jira = jira
 
-    get_initiatives(jira)
+    if g_args.project:
+        key = g_args.project
+
+    get_initiatives(jira, key)
 
 if __name__ == "__main__":
     main(sys.argv)
