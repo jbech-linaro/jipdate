@@ -218,6 +218,20 @@ def sponsor_to_list(s):
             sponsors.append(str(i.value))
     return sponsors
 
+def get_color(assignee, name):
+    color = ""
+    if assignee is None:
+        color = "#990000" # Red
+    elif "In Progress" in name:
+        color = "#009900" # Green
+    elif "Blocked" in name:
+        color = "#ff6600" # Orange
+    elif "To Do" in name:
+        color = "#ff6600" # Orange
+    else:
+        color = "#990000" # Red
+    return color
+
 ################################################################################
 # General nodes
 ################################################################################
@@ -289,17 +303,7 @@ def write_story_node(f, key):
     if "Resolved" in issue.fields.status.name:
         return
 
-    color = ""
-    if issue.fields.assignee is None:
-        color = "#990000" # Red
-    elif "In Progress" in issue.fields.status.name:
-        color = "#009900" # Green
-    elif "Blocked" in issue.fields.status.name:
-        color = "#ff6600" # Orange
-    elif "To Do" in issue.fields.status.name:
-        color = "#ff6600" # Orange
-    else:
-        color = "#990000" # Red
+    color = get_color(issue.fields.assignee, issue.fields.status.name)
 
     start_new_issue_node(f, issue, "true", color)
     write_single_story_node(f, issue)
@@ -320,17 +324,7 @@ def write_epic_node(f, key):
     if "Resolved" in issue.fields.status.name:
         return
 
-    color = ""
-    if issue.fields.assignee is None:
-        color = "#990000" # Red
-    elif "In Progress" in issue.fields.status.name:
-        color = "#009900" # Green
-    elif "Blocked" in issue.fields.status.name:
-        color = "#ff6600" # Orange
-    elif "To Do" in issue.fields.status.name:
-        color = "#ff6600" # Orange
-    else:
-        color = "#990000" # Red
+    color = get_color(issue.fields.assignee, issue.fields.status.name)
 
     start_new_issue_node(f, issue, "true", color)
     write_info_node(f, issue)
@@ -346,18 +340,7 @@ def write_epic_node(f, key):
 ################################################################################
 def write_initiative_node(f, issue):
     print(str(issue) + " (Initiative)")
-    color = ""
-    if issue.fields.assignee is None:
-        color = "#990000" # Red
-    elif "In Progress" in issue.fields.status.name:
-        color = "#009900" # Green
-    elif "Blocked" in issue.fields.status.name:
-        color = "#ff6600" # Orange
-    elif "To Do" in issue.fields.status.name:
-        color = "#ff6600" # Orange
-    else:
-        color = "#990000" # Red
-
+    color = get_color(issue.fields.assignee, issue.fields.status.name)
     start_new_issue_node(f, issue, "false", color)
     write_info_node(f, issue)
 
@@ -394,16 +377,7 @@ def get_orphans(jira, f, key):
 
     f.write("<node TEXT=\"Orphans\" POSITION=\"left\" FOLDED=\"false\" COLOR=\"#000000\">\n")
     for issue in orphans:
-        if issue.fields.assignee is None:
-            color = "#990000" # Red
-        elif "In Progress" in issue.fields.status.name:
-            color = "#009900" # Green
-        elif "Blocked" in issue.fields.status.name:
-            color = "#ff6600" # Orange
-        elif "To Do" in issue.fields.status.name:
-            color = "#ff6600" # Orange
-        else:
-            color = "#990000" # Red
+        color = get_color(issue.fields.assignee, issue.fields.status.name)
         start_new_issue_node(f, issue, "true", color)
         if "Epic" in issue.fields.issuetype.name:
             write_info_node(f, issue)
