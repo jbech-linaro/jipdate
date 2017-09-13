@@ -403,6 +403,10 @@ def get_orphans(jira, f, key):
         else:
             color = "#990000" # Red
         start_new_issue_node(f, issue, "true", color)
+        if "Epic" in issue.fields.issuetype.name:
+            write_info_node(f, issue)
+        elif "Story" in issue.fields.issuetype.name:
+            write_single_story_node(f, issue)
         end_new_issue_node(f)
     f.write("\n</node>\n")
 
