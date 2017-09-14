@@ -13,6 +13,7 @@ import glob
 import getpass
 import json
 import os
+import operator
 import re
 import sys
 import unicodedata
@@ -33,6 +34,159 @@ g_all_issues = []
 # Yaml instance, opened at the beginning of main and then kept available
 # globally.
 g_yml_config = None
+################################################################################
+# Class node
+################################################################################
+class Node():
+    """A node representing an issue in Jira"""
+    def __init__(self, key, summary, issuetype):
+        """Return a node containing the must have feature to be represented in a
+        tree."""
+        self.key = key
+        self.summary = summary
+        self.issuetype = issuetype
+        self.assignee = None
+        self.sponsors = []
+        self.description = None
+        self.parent = None
+        self.childrens = {}
+        self.state = None
+        self.color = None
+        self.base_url = None
+
+        self._indent = 0
+
+    def __str__(self):
+        s =  "%s%s: %s [%s]\n"              % (" " * self._indent, self.key, self.summary, self.issuetype)
+        s += "%s     |   assignee:    %s\n" % (" " * self._indent, self.assignee)
+        s += "%s     |   sponsors:    %s\n" % (" " * self._indent, ", ".join(self.sponsors))
+        s += "%s     |   description: %s\n" % (" " * self._indent, self.description)
+        s += "%s     |   parent:      %s\n" % (" " * self._indent, self.parent)
+        s += "%s     |   state:       %s\n" % (" " * self._indent, self.state)
+        s += "%s     |   url:         %s\n" % (" " * self._indent, self.get_url())
+        s += "%s     |-> color:       %s\n" % (" " * self._indent, self.get_color())
+        return s
+
+    def _short_type(self):
+        st = "I"
+        if self.issuetype == "Epic":
+            st = "E"
+        elif self.issuetype == "Story":
+            st = "S"
+        return st
+
+    def add_assignee(self, assignee):
+        self.assignee = assignee
+
+    def get_assignee(self):
+        return self.assignee
+
+    def add_sponsor(self, sponsor):
+        self.sponsors.append(sponsor)
+
+    def get_sponsor(self, sponsor):
+        return self.sponsors
+
+    def add_description(self, description):
+        self.description = description
+
+    def get_description(self, description):
+        return self.description
+
+    def add_parent(self, key):
+        self.parent = key
+
+    def get_parent(self):
+        return self.key
+
+    def add_child(self, node):
+        node.add_parent(self.key)
+        self.childrens[node.key] = node
+
+    def set_state(self, state):
+        self.state = state
+
+    def get_state(self):
+        return self.state
+
+    def set_color(self, color):
+        self.color = color
+
+    def get_color(self):
+        if self.color is not None:
+            return self.color
+
+        color = "#990000" # Red
+        if self.state == "In Progress":
+            color = "#009900" # Green
+        elif self.state in ["Blocked", "To Do"]:
+            color = "#ff6600" # Orange
+        return color
+
+    def set_base_url(self, base_url):
+        self.base_url = base_url
+
+    def get_url(self):
+        if self.base_url is not None:
+            return self.base_url + "/browse/" + self.key
+        else:
+            return self.base_url
+
+    def gen_tree(self, indent=0):
+        self._indent = indent
+        print(self)
+        for key in self.childrens:
+            self.childrens[key].gen_tree(self._indent + 4)
+
+    def to_xml(self, indent=0):
+        self._indent = indent
+        # Main node
+        xml_start = "%s<node LINK=\"%s\" TEXT=\"%s/%s: %s\" FOLDED=\"%s\" COLOR=\"%s\">" % \
+                (" " * self._indent,
+                        self.get_url(),
+                        self._short_type(),
+                        self.key,
+                        self.summary,
+                        "true" if self.issuetype == "Epic" else "false",
+                        self.get_color())
+        print(xml_start)
+
+        # Info start
+        xml_info_start = "%s<node TEXT=\"info\" FOLDED=\"true\" COLOR=\"#000000\">" % \
+                (" " * (self._indent + 4))
+        print(xml_info_start)
+
+        # Assignee, single node
+        xml_assignee = "%s<node TEXT=\"Assignee: %s\" FOLDED=\"false\" COLOR=\"#000000\"/>" % \
+                (" " * (self._indent + 8),
+                        self.assignee)
+        print(xml_assignee)
+
+        # Sponsors
+        xml_sponsor_start = "%s<node TEXT=\"Sponsors\" FOLDED=\"true\" COLOR=\"#000000\">" % \
+                (" " * (self._indent + 8))
+        print(xml_sponsor_start)
+
+        for s in self.sponsors:
+            xml_sponsor = "%s<node TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\"/>" % \
+                    (" " * (self._indent + 12), s)
+            print(xml_sponsor)
+
+        # Sponsors end
+        xml_sponsor_end = "%s%s" % (" " * (self._indent + 8), "</node>")
+        print(xml_sponsor_end)
+
+        # Info end
+        xml_info_end = "%s%s" % (" " * (self._indent + 4), "</node>")
+        print(xml_info_end)
+
+        # Recursive print all childrens
+        for key in self.childrens:
+            self.childrens[key].to_xml(self._indent + 4)
+
+        # Add the closing element
+        xml_end = "%s%s" % (" " * self._indent, "</node>")
+        print(xml_end)
 
 ################################################################################
 # Helper functions
@@ -414,6 +568,37 @@ def main(argv):
     global g_yml_config
     global g_config_filename
     global g_jira
+
+    n1 = Node("SWG-1", "My issue 1", "Initiative")
+
+    n12 = Node("SWG-12", "My issue 12", "Epic")
+    n200 = Node("SWG-200", "My issue 200", "Story")
+    n201 = Node("SWG-201", "My issue 201", "Story")
+    n12.add_child(n200)
+    n12.add_child(n201)
+
+    n13 = Node("SWG-13", "My issue 13", "Epic")
+    n13.add_assignee("Joakim")
+    n13.set_state("In Progress")
+
+    n14 = Node("SWG-14", "My issue 14", "Epic")
+    n202 = Node("SWG-202", "My issue 202", "Story")
+    n14.add_child(n202)
+    n14.add_assignee("Joakim")
+    n14.set_state("To Do")
+    n14.set_color("#0000FF")
+    n14.add_sponsor("STE")
+    n14.add_sponsor("Arm")
+    n14.add_sponsor("Hisilicon")
+    n14.set_base_url(g_server)
+
+    n1.add_child(n12)
+    n1.add_child(n13)
+    n1.add_child(n14)
+
+    ##n1.gen_tree()
+    n1.to_xml()
+    exit(0)
 
     # This initiates the global yml configuration instance so it will be
     # accessible everywhere after this call.
