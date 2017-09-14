@@ -146,55 +146,56 @@ class Node():
         for key in self.childrens:
             self.childrens[key].gen_tree(self._indent + 4)
 
-    def to_xml(self, indent=0):
+    def to_xml(self, f, indent=0):
         self._indent = indent
         # Main node
-        xml_start = "%s<node LINK=\"%s\" TEXT=\"%s/%s: %s\" FOLDED=\"%s\" COLOR=\"%s\">" % \
+        xml_start = "%s<node LINK=\"%s\" TEXT=\"%s/%s: %s\" FOLDED=\"%s\" COLOR=\"%s\">\n" % \
                 (" " * self._indent,
-                        self.get_url(),
-                        self._short_type(),
-                        self.key,
-                        self.summary,
-                        "true" if self.issuetype in ["Epic", "Story"] else "false",
-                        self.get_color())
-        print(xml_start)
+                 self.get_url(),
+                 self._short_type(),
+                 self.key,
+                 self.summary,
+                 "true" if self.issuetype in ["Epic", "Story"] else "false",
+                 self.get_color())
+        f.write(xml_start)
 
         # Info start
-        xml_info_start = "%s<node TEXT=\"info\" FOLDED=\"true\" COLOR=\"#000000\">" % \
+        xml_info_start = "%s<node TEXT=\"info\" FOLDED=\"true\" COLOR=\"#000000\">\n" % \
                 (" " * (self._indent + 4))
-        print(xml_info_start)
+        f.write(xml_info_start)
 
         # Assignee, single node
-        xml_assignee = "%s<node TEXT=\"Assignee: %s\" FOLDED=\"false\" COLOR=\"#000000\"/>" % \
+        xml_assignee = "%s<node TEXT=\"Assignee: %s\" FOLDED=\"false\" COLOR=\"#000000\"/>\n" % \
                 (" " * (self._indent + 8),
                         self.assignee)
-        print(xml_assignee)
+        f.write(xml_assignee)
 
         # Sponsors
-        xml_sponsor_start = "%s<node TEXT=\"Sponsors\" FOLDED=\"false\" COLOR=\"#000000\">" % \
+        xml_sponsor_start = "%s<node TEXT=\"Sponsors\" FOLDED=\"false\" COLOR=\"#000000\">\n" % \
                 (" " * (self._indent + 8))
-        print(xml_sponsor_start)
+        f.write(xml_sponsor_start)
 
         for s in self.sponsors:
-            xml_sponsor = "%s<node TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\"/>" % \
+            xml_sponsor = "%s<node TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\"/>\n" % \
                     (" " * (self._indent + 12), s)
-            print(xml_sponsor)
+            f.write(xml_sponsor)
 
         # Sponsors end
-        xml_sponsor_end = "%s%s" % (" " * (self._indent + 8), "</node>")
-        print(xml_sponsor_end)
+        xml_sponsor_end = "%s%s" % (" " * (self._indent + 8), "</node>\n")
+        f.write(xml_sponsor_end)
 
         # Info end
-        xml_info_end = "%s%s" % (" " * (self._indent + 4), "</node>")
-        print(xml_info_end)
+        xml_info_end = "%s%s" % (" " * (self._indent + 4), "</node>\n")
+        f.write(xml_info_end)
 
         # Recursive print all childrens
         for key in self.childrens:
-            self.childrens[key].to_xml(self._indent + 4)
+            self.childrens[key].to_xml(f, self._indent + 4)
 
         # Add the closing element
-        xml_end = "%s%s" % (" " * self._indent, "</node>")
-        print(xml_end)
+        xml_end = "%s%s" % (" " * self._indent, "</node>\n")
+        f.write(xml_end)
+
 
 ################################################################################
 # Helper functions
@@ -429,7 +430,22 @@ def test():
     n1.gen_tree()
     n1.to_xml()
 
+################################################################################
+# General nodes
+################################################################################
+def root_nodes_start(f, key):
+    f.write("<map version=\"freeplane 1.6.0\">\n")
+    f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\" LOCALIZED_STYLE_REF=\"AutomaticLayout.level.root\">\n"
+        % (g_server + "/projects/" + key, key))
 
+def root_nodes_end(f):
+    f.write("</node>\n</map>")
+
+def orphan_node_start(f):
+    f.write("<node TEXT=\"Orphans\" POSITION=\"left\" FOLDED=\"false\" COLOR=\"#000000\">\n")
+
+def orphan_node_end(f):
+    f.write("</node>\n")
 ################################################################################
 # Stories
 ################################################################################
@@ -443,10 +459,12 @@ def build_story_node(jira, story_key, d_handled=None, epic_node=None):
     story.add_assignee(str(si.fields.assignee))
     story.set_state(str(si.fields.status.name))
     story.set_base_url(g_server)
+
     if epic_node is not None:
         story.add_parent(epic_node.get_key())
         epic_node.add_child(story)
-    #print(story)
+
+    print(story)
     d_handled[story.get_key()] = [story, si]
     return story
 
@@ -482,7 +500,7 @@ def build_epics_node(jira, epic_key, d_handled=None, initiative_node=None):
             story_key = str(link.inwardIssue.key)
             build_story_node(jira, story_key, d_handled, epic)
 
-    #print(epic)
+    print(epic)
     d_handled[epic.get_key()] = [epic, ei]
     return epic
 
@@ -502,7 +520,7 @@ def build_initiatives_node(jira, issue, d_handled):
         for s in sponsors:
             initiative.add_sponsor(str(s.value))
     initiative.set_base_url(g_server)
-    #print(initiative)
+    print(initiative)
 
     # Deal with Epics
     for link in issue.fields.issuelinks:
@@ -590,24 +608,32 @@ def main(argv):
     if g_args.project:
         key = g_args.project
 
-    #f = open_file(key + ".mm")
-    print("<map version=\"freeplane 1.6.0\">\n")
-    print("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\" LOCALIZED_STYLE_REF=\"AutomaticLayout.level.root\">\n"
-        % (g_server + "/projects/" + key, key))
+    # Open and initialize the file
+    f = open_file(key + ".mm")
+    root_nodes_start(f, key)
 
+    # Temporary dictorionary to keep track the data (issues) that we already
+    # have dealt with.
     d_handled = {}
-    nodes = build_initiatives_tree(jira, key, d_handled)
-    for n in nodes:
-        n.to_xml()
 
-    print("<node TEXT=\"Orphans\" POSITION=\"left\" FOLDED=\"false\" COLOR=\"#000000\">\n")
+    # Build the main tree with Initiatives beloninging to the project.
+    nodes = build_initiatives_tree(jira, key, d_handled)
+
+    # Dump the main tree to file
+    for n in nodes:
+        n.to_xml(f)
+
+    # Take care of the orphans, i.e., those who has no connection to any
+    # initiative in your project.
+    orphan_node_start(f)
     nodes = build_orphans_tree(jira, key, d_handled)
     for n in nodes:
-        n.to_xml()
-    print("\n</node>\n")
+        n.to_xml(f)
+    orphan_node_end(f)
 
-    print("\n</node>\n</map>")
-    #f.close()
+    # End the file
+    root_nodes_end(f)
+    f.close()
 
 if __name__ == "__main__":
     main(sys.argv)
