@@ -11,7 +11,17 @@ acceptance_criteria:
 
           Legend:
           ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||
+time_estimate: 52
 issuetype: Epic
 summary: My summary
 epic_name: My Epic
-description: My description
+description:
+        - |
+          h1. Goal
+          We want to do this because ...
+
+          h2. Resource
+          We need X engineers
+
+          h2. Hardware
+          We need hardware Y

@@ -19,7 +19,7 @@ import tempfile
 import yaml
 
 TEST_SERVER = 'https://dev-projects.linaro.org'
-PRODUCTION_SERVER = 'https://projects.linaro.orggggg'
+PRODUCTION_SERVER = 'https://projects.linaro.org'
 
 # Global variables
 g_config_file = None
@@ -540,26 +540,31 @@ def initiate_config(config_file):
     with open(config_file, 'r') as yml:
         g_yml_config = yaml.load(yml)
 
+def week_to_s(w):
+    return int(w * 5 * 8 * 3600)
+
 def parse_tickets(jira):
     """ Reads the config file (yaml format) and returns the sets the global
     instance.
     """
     global g_yml_config
 
-    for yml_file in glob.glob("./" + "ticket*"):
+    for yml_file in glob.glob("./new_tickets/" + "*.yml"):
         print("f: %s" % file)
+        created_ticket = False
         with open(yml_file, 'r') as yml:
             try:
                 ticket = yaml.load(yml)
                 p = ticket['project']
                 s = ticket['summary']
-                d = ticket['description']
+                d = ticket['description'][0]
                 i = ticket['issuetype']
                 lp = ticket['lead_project']
                 label = ticket['label']
                 upstream = ticket['upstream']
                 epic_name = ticket['epic_name']
                 acceptance_criteria = ticket['acceptance_criteria'][0]
+                time_estimate = week_to_s(ticket['time_estimate'])
                 print("project: %s" % p)
                 print("summary: %s" % s)
                 print("description: %s" % d)
@@ -569,16 +574,28 @@ def parse_tickets(jira):
                 print("Upstream: %s" % upstream)
                 print("Acceptance Criteria: %s" % acceptance_criteria)
                 print("Epic Name: %s" % epic_name)
-                new_issue = jira.create_issue(project=p, summary=s, description=d,
-                        issuetype={'name': i},
-                        customfield_10006=epic_name,
-                        customfield_10010={'value' : upstream},
-                        customfield_10105=acceptance_criteria,
-                        customfield_10043=[{'value' : lp}],
-                        labels=[label])
+                if i == "Epic":
+                    new_issue = jira.create_issue(project=p, summary=s, description=d,
+                            issuetype={'name': i},
+                            customfield_10006=epic_name,
+                            customfield_10010={'value' : upstream},
+                            customfield_10105=acceptance_criteria,
+                            customfield_10043=[{'value' : lp}],
+                            labels=[label])
+                elif i == "Initiative":
+                    new_issue = jira.create_issue(project=p, summary=s, description=d,
+                            issuetype={'name': i},
+                            customfield_10043=[{'value' : lp}],
+                            labels=[label])
+                elif issuetype == "Story":
+                    print("Not implemented")
                 print(new_issue)
+                created_ticket = True
             except KeyError:
                 print("Couldn't find key in %s" % yml_file)
+        if created_ticket:
+            os.remove(yml_file)
+
 
 def get_extra_comments():
     """ Read the jipdate config file and return all option comments. """
@@ -655,12 +672,8 @@ def main(argv):
     # The parser arguments are accessible everywhere after this call.
     g_args = parser.parse_args()
 
-    if not g_args.file and not g_args.q:
-        eprint("No file provided and not in query mode\n")
-        parser.print_help()
-        sys.exit(os.EX_USAGE)
-
     jira, username = get_jira_instance(g_args.t)
+    print("Parsing ticket folder")
     parse_tickets(jira)
 
 if __name__ == "__main__":
