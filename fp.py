@@ -595,32 +595,44 @@ def build_initiatives_tree(jira, key, d_handled):
         d_handled[initiative.get_key()] = [initiative, i] # Initiative
     return nodes
 
-def get_orphans(jira, f, key):
+def build_orphans_tree(jira, key, d_handled):
     global g_all_issues
 
     jql = "project=%s" % (key)
     all_issues = jira.search_issues(jql)
 
-    orphans = []
+    orphans_initiatives = []
+    orphans_epics = []
+    orphans_stories = []
     for i in all_issues:
-        if str(i) not in g_all_issues:
-            if "Closed" in i.fields.status.name:
-                continue
-            if "Resolved" in i.fields.status.name:
+        if str(i.key) not in d_handled:
+            if i.fields.status.name in ["Closed", "Resolved"]:
                 continue
             else:
-                orphans.append(i)
+                if i.fields.issuetype.name == "Initiative":
+                    orphans_initiatives.append(i)
+                elif i.fields.issuetype.name == "Epic":
+                    orphans_epics.append(i)
+                elif i.fields.issuetype.name == "Story":
+                    orphans_stories.append(i)
 
-    f.write("<node TEXT=\"Orphans\" POSITION=\"left\" FOLDED=\"false\" COLOR=\"#000000\">\n")
-    for issue in orphans:
-        color = get_color(issue.fields.assignee, issue.fields.status.name)
-        start_new_issue_node(f, issue, "true", color)
-        if "Epic" in issue.fields.issuetype.name:
-            write_info_node(f, issue)
-        elif "Story" in issue.fields.issuetype.name:
-            write_single_story_node(f, issue)
-        end_new_issue_node(f)
-    f.write("\n</node>\n")
+    # Now we three list of Jira tickets not touched before
+    #f.write("<node TEXT=\"Orphans\" POSITION=\"left\" FOLDED=\"false\" COLOR=\"#000000\">\n")
+
+    # Initiative
+    print("Initiatives ...")
+    for i in orphans_initiatives:
+        print(i)
+
+    print("Epics ...")
+    for i in orphans_epics:
+        print(i)
+
+    print("Stories ...")
+    for i in orphans_stories:
+        print(i)
+
+    #f.write("\n</node>\n")
 
 ################################################################################
 # Main function
@@ -687,10 +699,7 @@ def main(argv):
     for n in nodes:
         n.to_xml()
 
-    if "SWG-18" in d_handled:
-        print("Yes")
-    else:
-        print("No")
+    nodes = build_orphans_tree(jira, key, d_handled)
 
     print("\n</node>\n</map>")
     #f.close()
