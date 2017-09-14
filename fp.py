@@ -465,7 +465,10 @@ def build_story_node(jira, story_key, d_handled=None, epic_node=None):
         return None
 
     story = Node(str(si.key), str(si.fields.summary), str(si.fields.issuetype))
-    story.add_assignee(str(si.fields.assignee))
+    try:
+        story.add_assignee(str(si.fields.assignee))
+    except:
+        story.add_assignee("Unknown")
     story.set_state(str(si.fields.status.name))
     story.set_base_url(g_server)
 
@@ -489,13 +492,20 @@ def build_epics_node(jira, epic_key, d_handled=None, initiative_node=None):
         return None
 
     epic = Node(str(ei.key), str(ei.fields.summary), str(ei.fields.issuetype))
-    epic.add_assignee(str(ei.fields.assignee))
+    try:
+        epic.add_assignee(str(ei.fields.assignee))
+    except:
+        epic.add_assignee("Unknown")
     epic.set_state(str(ei.fields.status.name))
 
-    sponsors = ei.fields.customfield_10101
-    if sponsors is not None:
-        for s in sponsors:
-            epic.add_sponsor(str(s.value))
+    try:
+        sponsors = ei.fields.customfield_10101
+        if sponsors is not None:
+            for s in sponsors:
+                epic.add_sponsor(str(s.value))
+    except AttributeError:
+        epic.add_sponsor("No sponsor")
+
 
     epic.set_base_url(g_server)
 
@@ -522,7 +532,11 @@ def build_initiatives_node(jira, issue, d_handled):
         return None
 
     initiative = Node(str(issue.key), str(issue.fields.summary), str(issue.fields.issuetype))
-    initiative.add_assignee(str(issue.fields.assignee))
+    try:
+        initiative.add_assignee(str(issue.fields.assignee))
+    except:
+        initiative.add_assignee("Unknown")
+
     initiative.set_state(str(issue.fields.status.name))
     sponsors = issue.fields.customfield_10101
     if sponsors is not None:
