@@ -543,7 +543,7 @@ def build_story_node(jira, story_key, d_handled=None, epic_node=None):
     if epic_node is not None:
         story.add_parent(epic_node.get_key())
         epic_node.add_child(story)
-    print(story)
+    #print(story)
     d_handled[story.get_key()] = [story, si]
     return story
 
@@ -576,7 +576,7 @@ def build_epics_node(jira, epic_key, d_handled=None, initiative_node=None):
             story_key = str(link.inwardIssue.key)
             build_story_node(jira, story_key, d_handled, epic)
 
-    print(epic)
+    #print(epic)
     d_handled[epic.get_key()] = [epic, ei]
     return epic
 
@@ -594,7 +594,7 @@ def build_initiatives_node(jira, issue, d_handled):
         for s in sponsors:
             initiative.add_sponsor(str(s.value))
     initiative.set_base_url(g_server)
-    print(initiative)
+    #print(initiative)
 
     # Deal with Epics
     for link in issue.fields.issuelinks:
@@ -640,22 +640,25 @@ def build_orphans_tree(jira, key, d_handled):
                     orphans_stories.append(i)
 
     # Now we three list of Jira tickets not touched before
-    #f.write("<node TEXT=\"Orphans\" POSITION=\"left\" FOLDED=\"false\" COLOR=\"#000000\">\n")
 
+    nodes = []
     # Initiative
-    print("Initiatives ...")
+    #print("Initiatives ...")
     for i in orphans_initiatives:
-        print(i)
+        node = build_initiatives_node(jira, i, d_handled)
+        nodes.append(node)
 
-    print("Epics ...")
+    #print("Epics ...")
     for i in orphans_epics:
-        print(i)
+        node = build_epics_node(jira, str(i.key), d_handled)
+        nodes.append(node)
 
-    print("Stories ...")
+    #print("Stories ...")
     for i in orphans_stories:
-        print(i)
+        node = build_story_node(jira, str(i.key), d_handled)
+        nodes.append(node)
 
-    #f.write("\n</node>\n")
+    return nodes
 
 ################################################################################
 # Main function
@@ -722,7 +725,11 @@ def main(argv):
     for n in nodes:
         n.to_xml()
 
+    print("<node TEXT=\"Orphans\" POSITION=\"left\" FOLDED=\"false\" COLOR=\"#000000\">\n")
     nodes = build_orphans_tree(jira, key, d_handled)
+    for n in nodes:
+        n.to_xml()
+    print("\n</node>\n")
 
     print("\n</node>\n</map>")
     #f.close()
