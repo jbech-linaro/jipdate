@@ -46,23 +46,27 @@ class Node():
         self.sponsors = []
         self.description = None
         self.parent = None
-        self.childrens = {}
+        self.childrens = []
         self.state = None
         self.color = None
         self.base_url = None
 
         self._indent = 0
+        self._sortval = 3
 
     def __str__(self):
         s =  "%s%s: %s [%s]\n"              % (" " * self._indent, self.key, self.summary, self.issuetype)
-        s += "%s     |   assignee:    %s\n" % (" " * self._indent, self.assignee)
         s += "%s     |   sponsors:    %s\n" % (" " * self._indent, ", ".join(self.sponsors))
+        s += "%s     |   assignee:    %s\n" % (" " * self._indent, self.assignee)
         s += "%s     |   description: %s\n" % (" " * self._indent, self.description)
         s += "%s     |   parent:      %s\n" % (" " * self._indent, self.parent)
         s += "%s     |   state:       %s\n" % (" " * self._indent, self.state)
         s += "%s     |   url:         %s\n" % (" " * self._indent, self.get_url())
         s += "%s     |-> color:       %s\n" % (" " * self._indent, self.get_color())
         return s
+
+    def __lt__(self, other):
+        return self._sortval < other._sortval
 
     def _short_type(self):
         st = "I"
@@ -109,10 +113,17 @@ class Node():
 
     def add_child(self, node):
         node.add_parent(self.key)
-        self.childrens[node.key] = node
+        self.childrens.append(node)
 
     def set_state(self, state):
         self.state = state
+
+        if self.state in ["In Progress"]:
+            self._sortval = int(1)
+        elif self.state in ["To Do", "Blocked"]:
+            self._sortval = int(2)
+        else:
+            self._sortval = int(3)
 
     def get_state(self):
         return self.state
@@ -143,8 +154,8 @@ class Node():
     def gen_tree(self, indent=0):
         self._indent = indent
         print(self)
-        for key in self.childrens:
-            self.childrens[key].gen_tree(self._indent + 4)
+        for c in self.childrens:
+            c.gen_tree(self._indent + 4)
 
     def to_xml(self, f, indent=0):
         self._indent = indent
@@ -189,8 +200,8 @@ class Node():
         f.write(xml_info_end)
 
         # Recursive print all childrens
-        for key in self.childrens:
-            self.childrens[key].to_xml(f, self._indent + 4)
+        for c in sorted(self.childrens):
+            c.to_xml(f, self._indent + 4)
 
         # Add the closing element
         xml_end = "%s%s" % (" " * self._indent, "</node>\n")
@@ -248,6 +259,10 @@ def get_parser():
     parser.add_argument('--desc', required=False, action="store_true", \
             default=False, \
             help='Add description to the issues')
+
+    parser.add_argument('--test', required=False, action="store_true", \
+            default=False, \
+            help='Run test case and then exit')
 
     return parser
 
@@ -376,61 +391,6 @@ def initiate_config(config_file):
         g_yml_config = yaml.load(yml)
 
 ################################################################################
-# Helpers
-################################################################################
-def sponsor_to_list(s):
-    sponsors = []
-    if s is not None:
-        for i in s:
-            sponsors.append(str(i.value))
-    return sponsors
-
-def get_color(assignee, name):
-    color = ""
-    if assignee is None:
-        color = "#990000" # Red
-    elif "In Progress" in name:
-        color = "#009900" # Green
-    elif "Blocked" in name:
-        color = "#ff6600" # Orange
-    elif "To Do" in name:
-        color = "#ff6600" # Orange
-    else:
-        color = "#990000" # Red
-    return color
-
-def test():
-    n1 = Node("SWG-1", "My issue 1", "Initiative")
-
-    n12 = Node("SWG-12", "My issue 12", "Epic")
-    n200 = Node("SWG-200", "My issue 200", "Story")
-    n201 = Node("SWG-201", "My issue 201", "Story")
-    n12.add_child(n200)
-    n12.add_child(n201)
-
-    n13 = Node("SWG-13", "My issue 13", "Epic")
-    n13.add_assignee("Joakim")
-    n13.set_state("In Progress")
-
-    n14 = Node("SWG-14", "My issue 14", "Epic")
-    n202 = Node("SWG-202", "My issue 202", "Story")
-    n14.add_child(n202)
-    n14.add_assignee("Joakim")
-    n14.set_state("To Do")
-    n14.set_color("#0000FF")
-    n14.add_sponsor("STE")
-    n14.add_sponsor("Arm")
-    n14.add_sponsor("Hisilicon")
-    n14.set_base_url(g_server)
-
-    n1.add_child(n12)
-    n1.add_child(n13)
-    n1.add_child(n14)
-
-    n1.gen_tree()
-    n1.to_xml()
-
-################################################################################
 # General nodes
 ################################################################################
 def root_nodes_start(f, key):
@@ -446,6 +406,55 @@ def orphan_node_start(f):
 
 def orphan_node_end(f):
     f.write("</node>\n")
+
+################################################################################
+# Test
+################################################################################
+def test():
+    f = open_file("test" + ".mm")
+    root_nodes_start(f, "Test")
+    n1 = Node("SWG-1", "My issue 1", "Initiative")
+
+    n12 = Node("SWG-12", "My issue 12", "Epic")
+    n200 = Node("SWG-200", "My issue 200", "Story")
+    n201 = Node("SWG-201", "My issue 201", "Story")
+    n12.add_child(n200)
+    n12.add_child(n201)
+
+    n13 = Node("SWG-13", "My issue 13", "Epic")
+    n13.add_assignee("Joakim")
+    n13.set_state("In Progress")
+
+    n14 = Node("SWG-14", "My issue 14", "Epic")
+    n202 = Node("SWG-202", "My issue 202", "Story")
+    n202.set_state("In Progress")
+    n203 = Node("SWG-203", "My issue 203", "Story")
+    n203.set_state("Blocked")
+    n204 = Node("SWG-204", "My issue 204", "Story")
+    n204.set_state("In Progress")
+    n205 = Node("SWG-205", "My issue 205", "Story")
+
+    n14.add_child(n202)
+    n14.add_child(n203)
+    n14.add_child(n204)
+    n14.add_child(n205)
+    n14.add_assignee("Joakim")
+    n14.set_state("To Do")
+    n14.set_color("#0000FF")
+    n14.add_sponsor("STE")
+    n14.add_sponsor("Arm")
+    n14.add_sponsor("Hisilicon")
+    n14.set_base_url(g_server)
+
+    n1.add_child(n12)
+    n1.add_child(n13)
+    n1.add_child(n14)
+
+    n1.gen_tree()
+    n1.to_xml(f)
+    root_nodes_end(f)
+    f.close()
+
 ################################################################################
 # Stories
 ################################################################################
@@ -603,10 +612,15 @@ def main(argv):
     # The parser arguments are accessible everywhere after this call.
     g_args = parser.parse_args()
 
+    if g_args.test:
+        test()
+        exit()
+
     jira, username = get_jira_instance(g_args.t)
 
     if g_args.project:
         key = g_args.project
+
 
     # Open and initialize the file
     f = open_file(key + ".mm")
@@ -620,14 +634,14 @@ def main(argv):
     nodes = build_initiatives_tree(jira, key, d_handled)
 
     # Dump the main tree to file
-    for n in nodes:
+    for n in sorted(nodes):
         n.to_xml(f)
 
     # Take care of the orphans, i.e., those who has no connection to any
     # initiative in your project.
     orphan_node_start(f)
     nodes = build_orphans_tree(jira, key, d_handled)
-    for n in nodes:
+    for n in sorted(nodes):
         n.to_xml(f)
     orphan_node_end(f)
 
