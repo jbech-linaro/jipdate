@@ -153,7 +153,7 @@ class Node():
                         self._short_type(),
                         self.key,
                         self.summary,
-                        "true" if self.issuetype == "Epic" else "false",
+                        "true" if self.issuetype in ["Epic", "Story"] else "false",
                         self.get_color())
         print(xml_start)
 
