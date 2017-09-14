@@ -9,11 +9,9 @@ from jira import JIRAError
 from subprocess import call
 from time import gmtime, strftime
 
-import glob
 import getpass
 import json
 import os
-import operator
 import re
 import sys
 import unicodedata
@@ -23,13 +21,9 @@ TEST_SERVER = 'https://dev-projects.linaro.org'
 PRODUCTION_SERVER = 'https://projects.linaro.org'
 
 # Global variables
-g_config_file = None
 g_config_filename = "config.yml"
 g_server = PRODUCTION_SERVER
 g_args = None
-g_jira = None
-
-g_all_issues = []
 
 # Yaml instance, opened at the beginning of main and then kept available
 # globally.
@@ -97,6 +91,14 @@ class Node():
         self.description = description
 
     def get_description(self, description):
+        #try:
+        #    f.write("<richcontent TYPE=\"DETAILS\" HIDDEN=\"true\"\n>")
+        #    f.write("<html>\n<head>\n</head>\n<body>\n<p>\n")
+        #    f.write(issue.fields.description)
+        #except UnicodeEncodeError:
+        #    vprint("UnicodeEncodeError in description in %s" % str(issue))
+        #    f.write("Unicode error in description, please go to Jira\n")
+        #f.write("\n</p>\n</body>\n</html>\n</richcontent>\n")
         return self.description
 
     def add_parent(self, key):
@@ -396,140 +398,41 @@ def get_color(assignee, name):
         color = "#990000" # Red
     return color
 
-################################################################################
-# General nodes
-################################################################################
-def write_assignee_node(f, assignee):
-    f.write("<node TEXT=\"Assignee: %s\" FOLDED=\"false\" COLOR=\"#000000\"/>\n"
-            % assignee)
+def test():
+    n1 = Node("SWG-1", "My issue 1", "Initiative")
 
+    n12 = Node("SWG-12", "My issue 12", "Epic")
+    n200 = Node("SWG-200", "My issue 200", "Story")
+    n201 = Node("SWG-201", "My issue 201", "Story")
+    n12.add_child(n200)
+    n12.add_child(n201)
 
-def write_sponsor_node(f, sponsors):
-    f.write("<node TEXT=\"Sponsors\" FOLDED=\"false\" COLOR=\"#000000\">\n")
+    n13 = Node("SWG-13", "My issue 13", "Epic")
+    n13.add_assignee("Joakim")
+    n13.set_state("In Progress")
 
-    for s in sponsors:
-        f.write("<node TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\"/>\n" % s)
+    n14 = Node("SWG-14", "My issue 14", "Epic")
+    n202 = Node("SWG-202", "My issue 202", "Story")
+    n14.add_child(n202)
+    n14.add_assignee("Joakim")
+    n14.set_state("To Do")
+    n14.set_color("#0000FF")
+    n14.add_sponsor("STE")
+    n14.add_sponsor("Arm")
+    n14.add_sponsor("Hisilicon")
+    n14.set_base_url(g_server)
 
-    f.write("</node>\n")
-            
+    n1.add_child(n12)
+    n1.add_child(n13)
+    n1.add_child(n14)
 
-def write_info_node(f, issue):
-    f.write("<node TEXT=\"info\" FOLDED=\"true\" COLOR=\"#000000\">\n")
-    try:
-        write_assignee_node(f, issue.fields.assignee)
-    except UnicodeEncodeError:
-        write_assignee_node(f, "Unknown")
+    n1.gen_tree()
+    n1.to_xml()
 
-    try:
-        write_sponsor_node(f, sponsor_to_list(issue.fields.customfield_10101))
-    except AttributeError:
-        vprint("No sponsor")
-    f.write("</node>\n")
-
-
-def write_description(f, issue):
-    try:
-        f.write("<richcontent TYPE=\"DETAILS\" HIDDEN=\"true\"\n>")
-        f.write("<html>\n<head>\n</head>\n<body>\n<p>\n")
-        f.write(issue.fields.description)
-    except UnicodeEncodeError:
-        vprint("UnicodeEncodeError in description in %s" % str(issue))
-        f.write("Unicode error in description, please go to Jira\n")
-    f.write("\n</p>\n</body>\n</html>\n</richcontent>\n")
-
-
-
-def start_new_issue_node(f, issue, folded="false", color = "#990000"):
-    global g_all_issues
-    issue_id = str(issue)
-    summary = issue.fields.summary.replace("\"", "'")
-    summary = summary.replace("&", "and")
-    f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"%s\" COLOR=\"%s\">\n"
-            % (g_server + "/browse/" + issue_id,
-               issue_id + ": " + summary,
-               folded,
-               color))
-    g_all_issues.append(issue_id)
-
-
-def end_new_issue_node(f):
-    f.write("</node>\n")
 
 ################################################################################
 # Stories
 ################################################################################
-def write_single_story_node(f, issue):
-    f.write("<node TEXT=\"info\" FOLDED=\"true\" COLOR=\"#000000\">\n")
-    try:
-        write_assignee_node(f, issue.fields.assignee)
-    except UnicodeEncodeError:
-        write_assignee_node(f, "Unknown")
-    f.write("</node>\n")
-
-
-def write_story_node(f, key):
-    global g_jira
-    issue = g_jira.issue(key)
-
-    print(str(issue) + " (Story)")
-
-    if "Closed" in issue.fields.status.name:
-        return
-
-    if "Resolved" in issue.fields.status.name:
-        return
-
-    color = get_color(issue.fields.assignee, issue.fields.status.name)
-
-    start_new_issue_node(f, issue, "true", color)
-    write_single_story_node(f, issue)
-    end_new_issue_node(f)
-
-################################################################################
-# Epics
-################################################################################
-def write_epic_node(f, key):
-    global g_jira
-    global g_args
-    issue = g_jira.issue(key)
-
-    print(str(issue) + " (Epic)")
-
-    if "Closed" in issue.fields.status.name:
-        return
-
-    if "Resolved" in issue.fields.status.name:
-        return
-
-    color = get_color(issue.fields.assignee, issue.fields.status.name)
-
-    start_new_issue_node(f, issue, "true", color)
-    write_info_node(f, issue)
-
-    if g_args.desc:
-        write_description(f, issue)
-
-    for i in issue.fields.issuelinks:
-        if "inwardIssue" in i.raw:
-            write_story_node(f, str(i.inwardIssue.key))
-
-    end_new_issue_node(f)
-
-################################################################################
-# Initiatives
-################################################################################
-def write_initiative_node(f, issue):
-    print(str(issue) + " (Initiative)")
-    color = get_color(issue.fields.assignee, issue.fields.status.name)
-    start_new_issue_node(f, issue, "false", color)
-    write_info_node(f, issue)
-
-    for i in issue.fields.issuelinks:
-        if "inwardIssue" in i.raw:
-            write_epic_node(f, str(i.inwardIssue.key))
-
-    end_new_issue_node(f)
-
 def build_story_node(jira, story_key, d_handled=None, epic_node=None):
     si = jira.issue(story_key)
     if si.fields.status.name in ["Closed", "Resolved"]:
@@ -548,6 +451,9 @@ def build_story_node(jira, story_key, d_handled=None, epic_node=None):
     return story
 
 
+################################################################################
+# Epics
+################################################################################
 def build_epics_node(jira, epic_key, d_handled=None, initiative_node=None):
     ei = jira.issue(epic_key)
 
@@ -580,7 +486,9 @@ def build_epics_node(jira, epic_key, d_handled=None, initiative_node=None):
     d_handled[epic.get_key()] = [epic, ei]
     return epic
 
-
+################################################################################
+# Initiatives
+################################################################################
 def build_initiatives_node(jira, issue, d_handled):
     if issue.fields.status.name in ["Closed", "Resolved"]:
         d_handled[str(issue.key)] = [None, issue]
@@ -619,8 +527,6 @@ def build_initiatives_tree(jira, key, d_handled):
 
 
 def build_orphans_tree(jira, key, d_handled):
-    global g_all_issues
-
     jql = "project=%s" % (key)
     all_issues = jira.search_issues(jql)
 
@@ -639,21 +545,22 @@ def build_orphans_tree(jira, key, d_handled):
                 elif i.fields.issuetype.name == "Story":
                     orphans_stories.append(i)
 
-    # Now we three list of Jira tickets not touched before
+    # Now we three list of Jira tickets not touched before, let's go over them
+    # staring with Initiatives, then Epics and last Stories. By doing so we
+    # should get them nicely layed out in the orphan part of the tree.
 
     nodes = []
-    # Initiative
-    #print("Initiatives ...")
+    vprint("Orphan Initiatives ...")
     for i in orphans_initiatives:
         node = build_initiatives_node(jira, i, d_handled)
         nodes.append(node)
 
-    #print("Epics ...")
+    vprint("Orphan Epics ...")
     for i in orphans_epics:
         node = build_epics_node(jira, str(i.key), d_handled)
         nodes.append(node)
 
-    #print("Stories ...")
+    vprint("Orphan Stories ...")
     for i in orphans_stories:
         node = build_story_node(jira, str(i.key), d_handled)
         nodes.append(node)
@@ -667,37 +574,6 @@ def main(argv):
     global g_args
     global g_yml_config
     global g_config_filename
-    global g_jira
-
-    n1 = Node("SWG-1", "My issue 1", "Initiative")
-
-    n12 = Node("SWG-12", "My issue 12", "Epic")
-    n200 = Node("SWG-200", "My issue 200", "Story")
-    n201 = Node("SWG-201", "My issue 201", "Story")
-    n12.add_child(n200)
-    n12.add_child(n201)
-
-    n13 = Node("SWG-13", "My issue 13", "Epic")
-    n13.add_assignee("Joakim")
-    n13.set_state("In Progress")
-
-    n14 = Node("SWG-14", "My issue 14", "Epic")
-    n202 = Node("SWG-202", "My issue 202", "Story")
-    n14.add_child(n202)
-    n14.add_assignee("Joakim")
-    n14.set_state("To Do")
-    n14.set_color("#0000FF")
-    n14.add_sponsor("STE")
-    n14.add_sponsor("Arm")
-    n14.add_sponsor("Hisilicon")
-    n14.set_base_url(g_server)
-
-    n1.add_child(n12)
-    n1.add_child(n13)
-    n1.add_child(n14)
-
-    ##n1.gen_tree()
-    #n1.to_xml()
 
     # This initiates the global yml configuration instance so it will be
     # accessible everywhere after this call.
@@ -710,7 +586,6 @@ def main(argv):
     g_args = parser.parse_args()
 
     jira, username = get_jira_instance(g_args.t)
-    g_jira = jira
 
     if g_args.project:
         key = g_args.project
