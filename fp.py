@@ -44,6 +44,9 @@ class Node():
         tree."""
         self.key = key
         self.summary = summary
+        # Take care of some characters not supported in xml
+        self.summary = self.summary.replace("\"", "'")
+        self.summary = self.summary.replace("&", "and")
         self.issuetype = issuetype
         self.assignee = None
         self.sponsors = []
@@ -546,7 +549,7 @@ def build_initiatives_tree(jira, key, d_handled):
                 initiative.add_sponsor(str(s.value))
         initiative.set_base_url(g_server)
         nodes.append(initiative)
-        print(initiative)
+        #print(initiative)
 
         # Deal with Epics
         for link in i.fields.issuelinks:
@@ -566,10 +569,30 @@ def build_initiatives_tree(jira, key, d_handled):
                 epic.set_base_url(g_server)
                 epic.add_parent(initiative.get_key())
                 initiative.add_child(epic)
-                print(epic)
-                d_handled[epic.get_key()] = [epic, ei]
+                #print(epic)
 
-        d_handled[initiative.get_key()] = [initiative, i]
+                # Deal with Stories
+                for link in ei.fields.issuelinks:
+                    if "inwardIssue" in link.raw:
+                        story_key = str(link.inwardIssue.key)
+                        si = jira.issue(story_key)
+                        if si.fields.status.name in ["Closed", "Resolved"]:
+                            d_handled[str(si.key)] = [None, i]
+                            continue
+                        story = Node(str(si.key), str(si.fields.summary), str(si.fields.issuetype))
+                        story.add_assignee(str(si.fields.assignee))
+                        story.set_state(str(si.fields.status.name))
+                        #sponsors = si.fields.customfield_10101
+                        #if sponsors is not None:
+                        #    for s in sponsors:
+                        #        story.add_sponsor(str(s.value))
+                        story.set_base_url(g_server)
+                        story.add_parent(epic.get_key())
+                        epic.add_child(story)
+                        #print(story)
+                        d_handled[story.get_key()] = [story, si] # Story
+                d_handled[epic.get_key()] = [epic, ei] # Epic
+        d_handled[initiative.get_key()] = [initiative, i] # Initiative
     return nodes
 
 def get_orphans(jira, f, key):
