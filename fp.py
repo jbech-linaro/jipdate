@@ -530,47 +530,55 @@ def write_initiative_node(f, issue):
 
     end_new_issue_node(f)
 
-def build_epics_node(jira, epic_key, d_handled, initiative_node=None):
-            ei = jira.issue(epic_key)
-            if ei.fields.status.name in ["Closed", "Resolved"]:
-                d_handled[str(ei.key)] = [None, ei]
-                return None
+def build_story_node(jira, story_key, d_handled=None, epic_node=None):
+    si = jira.issue(story_key)
+    if si.fields.status.name in ["Closed", "Resolved"]:
+        d_handled[str(si.key)] = [None, si]
+        return None
 
-            epic = Node(str(ei.key), str(ei.fields.summary), str(ei.fields.issuetype))
-            epic.add_assignee(str(ei.fields.assignee))
-            epic.set_state(str(ei.fields.status.name))
-            sponsors = ei.fields.customfield_10101
-            if sponsors is not None:
-                for s in sponsors:
-                    epic.add_sponsor(str(s.value))
-            epic.set_base_url(g_server)
+    story = Node(str(si.key), str(si.fields.summary), str(si.fields.issuetype))
+    story.add_assignee(str(si.fields.assignee))
+    story.set_state(str(si.fields.status.name))
+    story.set_base_url(g_server)
+    if epic_node is not None:
+        story.add_parent(epic_node.get_key())
+        epic_node.add_child(story)
+    print(story)
+    d_handled[story.get_key()] = [story, si]
+    return story
 
-            if initiative_node is not None:
-                epic.add_parent(initiative_node.get_key())
-                initiative_node.add_child(epic)
-            print(epic)
 
-            # Deal with Stories
-            for link in ei.fields.issuelinks:
-                if "inwardIssue" in link.raw:
-                    story_key = str(link.inwardIssue.key)
-                    si = jira.issue(story_key)
-                    if si.fields.status.name in ["Closed", "Resolved"]:
-                        d_handled[str(si.key)] = [None, ei]
-                        continue
-                    story = Node(str(si.key), str(si.fields.summary), str(si.fields.issuetype))
-                    story.add_assignee(str(si.fields.assignee))
-                    story.set_state(str(si.fields.status.name))
-                    #sponsors = si.fields.customfield_10101
-                    #if sponsors is not None:
-                    #    for s in sponsors:
-                    #        story.add_sponsor(str(s.value))
-                    story.set_base_url(g_server)
-                    story.add_parent(epic.get_key())
-                    epic.add_child(story)
-                    #print(story)
-                    d_handled[story.get_key()] = [story, si] # Story
-            d_handled[epic.get_key()] = [epic, ei] # Epic
+def build_epics_node(jira, epic_key, d_handled=None, initiative_node=None):
+    ei = jira.issue(epic_key)
+
+    if ei.fields.status.name in ["Closed", "Resolved"]:
+        d_handled[str(ei.key)] = [None, ei]
+        return None
+
+    epic = Node(str(ei.key), str(ei.fields.summary), str(ei.fields.issuetype))
+    epic.add_assignee(str(ei.fields.assignee))
+    epic.set_state(str(ei.fields.status.name))
+
+    sponsors = ei.fields.customfield_10101
+    if sponsors is not None:
+        for s in sponsors:
+            epic.add_sponsor(str(s.value))
+
+    epic.set_base_url(g_server)
+
+    if initiative_node is not None:
+        epic.add_parent(initiative_node.get_key())
+        initiative_node.add_child(epic)
+
+    # Deal with stories
+    for link in ei.fields.issuelinks:
+        if "inwardIssue" in link.raw:
+            story_key = str(link.inwardIssue.key)
+            build_story_node(jira, story_key, d_handled, epic)
+
+    print(epic)
+    d_handled[epic.get_key()] = [epic, ei]
+    return epic
 
 
 def build_initiatives_node(jira, issue, d_handled):
@@ -597,6 +605,7 @@ def build_initiatives_node(jira, issue, d_handled):
     d_handled[initiative.get_key()] = [initiative, issue] # Initiative
     return initiative
 
+
 def build_initiatives_tree(jira, key, d_handled):
     jql = "project=%s AND issuetype in (Initiative)" % (key)
     initiatives = jira.search_issues(jql)
@@ -607,6 +616,7 @@ def build_initiatives_tree(jira, key, d_handled):
         if node is not None:
             nodes.append(node)
     return nodes
+
 
 def build_orphans_tree(jira, key, d_handled):
     global g_all_issues
