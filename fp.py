@@ -75,6 +75,9 @@ class Node():
             st = "S"
         return st
 
+    def get_key(self):
+        return self.key
+
     def add_assignee(self, assignee):
         self.assignee = assignee
 
@@ -163,7 +166,7 @@ class Node():
         print(xml_assignee)
 
         # Sponsors
-        xml_sponsor_start = "%s<node TEXT=\"Sponsors\" FOLDED=\"true\" COLOR=\"#000000\">" % \
+        xml_sponsor_start = "%s<node TEXT=\"Sponsors\" FOLDED=\"false\" COLOR=\"#000000\">" % \
                 (" " * (self._indent + 8))
         print(xml_sponsor_start)
 
@@ -525,13 +528,49 @@ def write_initiative_node(f, issue):
     end_new_issue_node(f)
 
 
-def get_initiatives(jira, f, key):
+def build_initiatives_tree(jira, key, d_handled):
     jql = "project=%s AND issuetype in (Initiative)" % (key)
     initiatives = jira.search_issues(jql)
 
+    nodes = []
     for i in initiatives:
-        issue = jira.issue(i.key)
-        write_initiative_node(f, issue)
+        if i.fields.status.name in ["Closed", "Resolved"]:
+            d_handled[str(i.key)] = [None, i]
+            continue
+        initiative = Node(str(i.key), str(i.fields.summary), str(i.fields.issuetype))
+        initiative.add_assignee(str(i.fields.assignee))
+        initiative.set_state(str(i.fields.status.name))
+        sponsors = i.fields.customfield_10101
+        if sponsors is not None:
+            for s in sponsors:
+                initiative.add_sponsor(str(s.value))
+        initiative.set_base_url(g_server)
+        nodes.append(initiative)
+        print(initiative)
+
+        # Deal with Epics
+        for link in i.fields.issuelinks:
+            if "inwardIssue" in link.raw:
+                epic_key = str(link.inwardIssue.key)
+                ei = jira.issue(epic_key)
+                if ei.fields.status.name in ["Closed", "Resolved"]:
+                    d_handled[str(ei.key)] = [None, i]
+                    continue
+                epic = Node(str(ei.key), str(ei.fields.summary), str(ei.fields.issuetype))
+                epic.add_assignee(str(ei.fields.assignee))
+                epic.set_state(str(ei.fields.status.name))
+                sponsors = ei.fields.customfield_10101
+                if sponsors is not None:
+                    for s in sponsors:
+                        epic.add_sponsor(str(s.value))
+                epic.set_base_url(g_server)
+                epic.add_parent(initiative.get_key())
+                initiative.add_child(epic)
+                print(epic)
+                d_handled[epic.get_key()] = [epic, ei]
+
+        d_handled[initiative.get_key()] = [initiative, i]
+    return nodes
 
 def get_orphans(jira, f, key):
     global g_all_issues
@@ -597,8 +636,7 @@ def main(argv):
     n1.add_child(n14)
 
     ##n1.gen_tree()
-    n1.to_xml()
-    exit(0)
+    #n1.to_xml()
 
     # This initiates the global yml configuration instance so it will be
     # accessible everywhere after this call.
@@ -616,16 +654,23 @@ def main(argv):
     if g_args.project:
         key = g_args.project
 
-    f = open_file(key + ".mm")
-    f.write("<map version=\"freeplane 1.6.0\">\n")
-    f.write("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\" LOCALIZED_STYLE_REF=\"AutomaticLayout.level.root\">\n"
+    #f = open_file(key + ".mm")
+    print("<map version=\"freeplane 1.6.0\">\n")
+    print("<node LINK=\"%s\" TEXT=\"%s\" FOLDED=\"false\" COLOR=\"#000000\" LOCALIZED_STYLE_REF=\"AutomaticLayout.level.root\">\n"
         % (g_server + "/projects/" + key, key))
 
-    get_initiatives(jira, f, key)
-    get_orphans(jira, f, key)
+    d_handled = {}
+    nodes = build_initiatives_tree(jira, key, d_handled)
+    for n in nodes:
+        n.to_xml()
 
-    f.write("\n</node>\n</map>")
-    f.close()
+    if "SWG-18" in d_handled:
+        print("Yes")
+    else:
+        print("No")
+
+    print("\n</node>\n</map>")
+    #f.close()
 
 if __name__ == "__main__":
     main(sys.argv)
