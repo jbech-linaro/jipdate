@@ -168,6 +168,9 @@ class Node():
         if g_args.s and self.issuetype == "Epic":
             fold = "false"
 
+        if g_args.i and self.issuetype == "Initiative":
+            fold = "true"
+
         xml_start = "%s<node LINK=\"%s\" TEXT=\"%s/%s: %s\" FOLDED=\"%s\" COLOR=\"%s\">\n" % \
                 (" " * self._indent,
                  self.get_url(),
@@ -252,6 +255,10 @@ def get_parent_key(jira, issue):
 def get_parser():
     """ Takes care of script argument parsing. """
     parser = ArgumentParser(description='Script used to generate Freeplane mindmap files')
+
+    parser.add_argument('-i', required=False, action="store_true", \
+            default=False, \
+            help='Show Initiatives only')
 
     parser.add_argument('-p', '--project', required=False, action="store", \
             default="SWG", \
