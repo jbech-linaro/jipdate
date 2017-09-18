@@ -158,15 +158,23 @@ class Node():
             c.gen_tree(self._indent + 4)
 
     def to_xml(self, f, indent=0):
+        global g_args
         self._indent = indent
         # Main node
+        fold = "false"
+        if self.issuetype in ["Epic", "Story"]:
+            fold = "true"
+
+        if g_args.s and self.issuetype == "Epic":
+            fold = "false"
+
         xml_start = "%s<node LINK=\"%s\" TEXT=\"%s/%s: %s\" FOLDED=\"%s\" COLOR=\"%s\">\n" % \
                 (" " * self._indent,
                  self.get_url(),
                  self._short_type(),
                  self.key,
                  self.summary,
-                 "true" if self.issuetype in ["Epic", "Story"] else "false",
+                 fold,
                  self.get_color())
         f.write(xml_start)
 
@@ -248,6 +256,10 @@ def get_parser():
     parser.add_argument('-p', '--project', required=False, action="store", \
             default="SWG", \
             help='Project type (SWG, VIRT, KWG etc)')
+
+    parser.add_argument('-s', required=False, action="store_true", \
+            default=False, \
+            help='Show stories also')
 
     parser.add_argument('-t', required=False, action="store_true", \
             default=False, \
