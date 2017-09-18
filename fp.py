@@ -233,6 +233,11 @@ def open_file(filename):
     else:
         return tempfile.NamedTemporaryFile(delete=False)
 
+def get_parent_key(jira, issue):
+    if hasattr(issue.fields, "customfield_10005"):
+        return getattr(issue.fields, "customfield_10005");
+    return None
+
 ################################################################################
 # Argument parser
 ################################################################################
@@ -475,6 +480,17 @@ def build_story_node(jira, story_key, d_handled=None, epic_node=None):
     if epic_node is not None:
         story.add_parent(epic_node.get_key())
         epic_node.add_child(story)
+    else:
+        # This cateches when people are not using implements/implemented by, but
+        # there is atleast an "Epic" link that we can use.
+        parent = get_parent_key(jira, si)
+        if parent is not None and parent in d_handled:
+            parent_node = d_handled[parent][0]
+            if parent_node is not None:
+                story.add_parent(parent_node)
+                parent_node.add_child(story)
+            else:
+                vprint("Didn't find any parent")
 
     print(story)
     d_handled[story.get_key()] = [story, si]
@@ -512,6 +528,19 @@ def build_epics_node(jira, epic_key, d_handled=None, initiative_node=None):
     if initiative_node is not None:
         epic.add_parent(initiative_node.get_key())
         initiative_node.add_child(epic)
+    else:
+        # This cateches when people are not using implements/implemented by, but
+        # there is atleast an "Initiative" link that we can use.
+        parent = get_parent_key(jira, ei)
+        if parent is not None and parent in d_handled:
+            parent_node = d_handled[parent][0]
+            if parent_node is not None:
+                epic.add_parent(parent_node)
+                parent_node.add_child(epic)
+            else:
+                vprint("Didn't find any parent")
+
+    d_handled[epic.get_key()] = [epic, ei]
 
     # Deal with stories
     for link in ei.fields.issuelinks:
@@ -520,7 +549,6 @@ def build_epics_node(jira, epic_key, d_handled=None, initiative_node=None):
             build_story_node(jira, story_key, d_handled, epic)
 
     print(epic)
-    d_handled[epic.get_key()] = [epic, ei]
     return epic
 
 ################################################################################
@@ -545,13 +573,14 @@ def build_initiatives_node(jira, issue, d_handled):
     initiative.set_base_url(g_server)
     print(initiative)
 
+    d_handled[initiative.get_key()] = [initiative, issue] # Initiative
+
     # Deal with Epics
     for link in issue.fields.issuelinks:
         if "inwardIssue" in link.raw:
             epic_key = str(link.inwardIssue.key)
             build_epics_node(jira, epic_key, d_handled, initiative)
 
-    d_handled[initiative.get_key()] = [initiative, issue] # Initiative
     return initiative
 
 
@@ -647,15 +676,21 @@ def main(argv):
     # Build the main tree with Initiatives beloninging to the project.
     nodes = build_initiatives_tree(jira, key, d_handled)
 
+    # Take care of the orphans, i.e., those who has no connection to any
+    # initiative in your project.
+    nodes_orpans  = build_orphans_tree(jira, key, d_handled)
+
+    # FIXME: We run through this once more since, when we run it the first time
+    # we will catch Epics and Stories who are not linked with
+    # "implements/implemented by" but instead uses the so called "Epic" link.
+    nodes_orpans  = build_orphans_tree(jira, key, d_handled)
+
     # Dump the main tree to file
     for n in sorted(nodes):
         n.to_xml(f)
 
-    # Take care of the orphans, i.e., those who has no connection to any
-    # initiative in your project.
     orphan_node_start(f)
-    nodes = build_orphans_tree(jira, key, d_handled)
-    for n in sorted(nodes):
+    for n in sorted(nodes_orpans):
         n.to_xml(f)
     orphan_node_end(f)
 
