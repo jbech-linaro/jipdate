@@ -36,6 +36,7 @@ class Node():
         self.state = None
         self.color = None
         self.base_url = None
+        self.fixversion = None
 
         self._indent = 0
         self._sortval = 3
@@ -43,6 +44,7 @@ class Node():
     def __str__(self):
         s =  "%s%s: %s [%s]\n"              % (" " * self._indent, self.key, self.summary, self.issuetype)
         s += "%s     |   sponsors:    %s\n" % (" " * self._indent, ", ".join(self.sponsors))
+        s += "%s     |   fix version: %s\n" % (" " * self._indent, self.fixversion)
         s += "%s     |   assignee:    %s\n" % (" " * self._indent, self.assignee)
         s += "%s     |   description: %s\n" % (" " * self._indent, self.description)
         s += "%s     |   parent:      %s\n" % (" " * self._indent, self.parent)
@@ -76,6 +78,12 @@ class Node():
 
     def get_sponsor(self, sponsor):
         return self.sponsors
+
+    def add_fixversion(self, version):
+        self.fixversion = version
+
+    def get_fixversion(self, version):
+        return self.fixversion
 
     def add_description(self, description):
         self.description = description
@@ -190,6 +198,12 @@ class Node():
         # Sponsors end
         xml_sponsor_end = "%s%s" % (" " * (self._indent + 8), "</node>\n")
         f.write(xml_sponsor_end)
+
+        # Fix Versions
+        xml_fixversion = "%s<node TEXT=\"FixVersion: %s\" FOLDED=\"false\" COLOR=\"#000000\"/>\n" % \
+                (" " * (self._indent + 8),
+                        self.fixversion)
+        f.write(xml_fixversion)
 
         # Info end
         xml_info_end = "%s%s" % (" " * (self._indent + 4), "</node>\n")
@@ -345,6 +359,11 @@ def build_story_node(jira, story_key, d_handled=None, epic_node=None):
     story.add_assignee(assignee)
 
     story.set_state(str(si.fields.status.name))
+
+    if hasattr(si.fields, "fixVersions"):
+        if len(si.fields.fixVersions) > 0:
+            story.add_fixversion(str(si.fields.fixVersions[0].name))
+
     story.set_base_url(cfg.server)
 
     if epic_node is not None:
@@ -396,6 +415,9 @@ def build_epics_node(jira, epic_key, d_handled=None, initiative_node=None):
     except AttributeError:
         epic.add_sponsor("No sponsor")
 
+    if hasattr(ei.fields, "fixVersions"):
+        if len(ei.fields.fixVersions) > 0:
+            epic.add_fixversion(str(ei.fields.fixVersions[0].name))
 
     epic.set_base_url(cfg.server)
 
@@ -447,6 +469,11 @@ def build_initiatives_node(jira, issue, d_handled):
     if sponsors is not None:
         for s in sponsors:
             initiative.add_sponsor(str(s.value))
+
+    if hasattr(issue.fields, "fixVersions"):
+        if len(issue.fields.fixVersions) > 0:
+            initiative.add_fixversion(str(issue.fields.fixVersions[0].name))
+
     initiative.set_base_url(cfg.server)
     print(initiative)
 
