@@ -5,22 +5,32 @@ upstream: "Yes"
 acceptance_criteria:
         - |
           ||Criteria||Status||Closeout Notes/Links||
-          |Patches delivered to [OP-TEE |https://github.com/OP-TEE]|(x)|Patches can be found [here (FIXME update link) |https://github.com/OP-TEE]|
-          |No regressions introduced in xtest|(x)|To-Do add link to Travis log (running QEMU / xtest)|
+          |Patches enabling key attestation merged on our AOSP Keymaster feature branch|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          |Patches enabling key attestation merged to our OP-TEE Keymaster Trusted Application|(x)| |
+          |CTS (VTS) test cases passes on [DUT|https://en.wikipedia.org/wiki/Device_under_test] |(x)| |
 
           Legend:
           ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||
 time_estimate: 52
 issuetype: Epic
-summary: My summary
-epic_name: My Epic
+summary: Keymaster - Key Attestation
+epic_name: Keymaster - Key Attestation
 description:
         - |
           h1. Goal
-          We want to do this because ...
+          [Key Attestation|https://source.android.com/security/keystore/attestation] in Keymaster is about ensuring that RSA and ECDSA keys are in secure hardware. The way to achieve this is to have a certificate that describes the key and the access controls belonging to this particular key. This functionality has been in AOSP since Nougat, but hasn't been required until Oreo. Starting with Oreo all devices must have a hardware-backed Keystore and also support attestation.
+
+          h2. Scope and implementation details
+          h3. In scope
+          - All necessary interfaces shall be implemented so that the CTS tests for the attestation key shall pass.
+          ** In [this|https://developer.android.com/training/articles/security-key-attestation#verifying] link there are the steps needed to implement key attestation from an app point of view, which might be something we need to do to develop the actual attestation feature for OP-TEE. On the same page you also find a link to a sample application.
+          - Besides general support for the certificate we also need to support the custom extension which contains access control constraints.
+
+          h3. Not in scope
+          - The certificate should be signed by an attestation key which can be obtained by Google and which normally is injected at the factory. We have no device with a key like this and it doesn't make much sense to get one, since Linaro itself doesn't make any Android devices. So the best we can do is to use a stubbed developer-attestation key which has to be replaced by the SoC/OEM/device maker who are using OP-TEE. If it is unavoidable to use a developer-attestation key, then we have to reach out to Google.
 
           h2. Resource
-          We need X engineers
+          We need one engineer for 1.5 months to be able to complete the work.
 
           h2. Hardware
-          We need hardware Y
+          HiKey 620, HiKey 960 or even aosp_arm-eng
