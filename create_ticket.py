@@ -575,18 +575,26 @@ def parse_tickets(jira):
                 print("Acceptance Criteria: %s" % acceptance_criteria)
                 print("Epic Name: %s" % epic_name)
                 if i == "Epic":
-                    new_issue = jira.create_issue(project=p, summary=s, description=d,
-                            issuetype={'name': i},
-                            customfield_10006=epic_name,
-                            customfield_10010={'value' : upstream},
-                            customfield_10105=acceptance_criteria,
-                            customfield_10043=[{'value' : lp}],
-                            labels=[label])
+                    query = { 'project':p,
+                              'summary':s,
+                              'description':d,
+                              'issuetype': {'name': i},
+                              'customfield_10006':epic_name,
+                              'customfield_10010': {'value' : upstream},
+                              'customfield_10105':acceptance_criteria,
+                              'customfield_10043':[{'value' : lp}] }
+                    if label is not None:
+                        query['labels'] = [label]
+                    new_issue = jira.create_issue(query)
                 elif i == "Initiative":
-                    new_issue = jira.create_issue(project=p, summary=s, description=d,
-                            issuetype={'name': i},
-                            customfield_10043=[{'value' : lp}],
-                            labels=[label])
+                    query = { 'project':p,
+                              'summary':s,
+                              'description':d,
+                              'issuetype': {'name': i},
+                              'customfield_10043':[{'value' : lp}] }
+                    if label is not None:
+                        query['labels'] = [label]
+                    new_issue = jira.create_issue(query)
                 elif issuetype == "Story":
                     print("Not implemented")
                 print(new_issue)
