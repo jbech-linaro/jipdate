@@ -241,14 +241,14 @@ def should_update():
         elif cfg.server == TEST_SERVER:
             target = "TEST"
 
-        print("Server to update: %s" % target)
-        print(" %s\n" % cfg.server);
+        print("Server to update: {}".format(target))
+        print(" {}\n".format(cfg.server))
         answer = raw_input("Are you sure you want to update Jira with the " +
                            "information above? [y/n] ").lower().strip()
         if answer in set(['y', 'n']):
             return answer
         else:
-            print("Incorrect input: %s" % answer)
+            print("Incorrect input: {}".format(answer))
 
 
 def parse_status_file(jira, filename):
@@ -327,7 +327,7 @@ def parse_status_file(jira, filename):
             continue
 
         issue_upload.append((issue, comment))
-        print("[%s]\n  %s" % (issue, "\n  ".join(comment.splitlines())))
+        print("[{}]\n  {}".format(issue, "\n  ".join(comment.splitlines())))
     print("")
 
     issue_comments = issue_upload
