@@ -85,14 +85,14 @@ def update_fte_next_cycle(issue, fte_next):
     if hasattr(issue.fields, "customfield_11801"):
         issue.update(fields={'customfield_11801': fte_next}, notify=False)
     else:
-        print("  Warning: {}: {} doesn't have a FTE next cycle field, no update done!".format(
+        print("  Warning: [{}: {}] doesn't have a FTE next cycle field, no update done!".format(
             issue.key, issue.fields.summary))
 
 def update_fte_remaining(issue, fte_remain):
     if hasattr(issue.fields, "customfield_12000"):
-        issue.update(fields={'customfield_12000': fte_next}, notify=False)
+        issue.update(fields={'customfield_12000': fte_remain}, notify=False)
     else:
-        print("  Warning: {}: {} doesn't have a FTE remaining field, no update done!".format(
+        print("  Warning: [{}: {}] doesn't have a FTE remaining field, no update done!".format(
             issue.key, issue.fields.summary))
 
 def issue_type(link):
@@ -109,7 +109,7 @@ def issue_remaining_estimate(jira, issue):
         est = issue.fields.timetracking.raw['remainingEstimateSeconds']
         return est
     else:
-        eprint("  Warning: Found no estimate in Epic {}, returning '0'!".format(issue.key))
+        eprint("  Warning: Found no estimate in Epic {} (returning 0 as estimate)!".format(issue.key))
         return 0
 
 def gather_epics(jira, key):
@@ -150,7 +150,7 @@ def update_initiative(jira, initiative, fte_next, fte_remain):
         print("  NOT updating {} (found in the ignore list)".format(initiative.key))
         return
 
-    print("  Updating FTE in {}".format(initiative.key))
+    print("  Updating FTE's in {}".format(initiative.key))
     update_fte_next_cycle(initiative, fte_next)
     update_fte_remaining(initiative, fte_remain)
 
@@ -193,7 +193,7 @@ def load_ignore_list():
         print("Adding following to the ignore list (no estimate updates for these):")
         for i in initiatives:
             issue = i.split()[0]
-            print("  {}".format(issue))
+            print("  * {}".format(i.strip('\n')))
             IGNORE_LIST.append(issue)
 
 def should_update(question):
@@ -261,7 +261,7 @@ def main(argv):
             jira.close()
             sys.exit()
     else:
-        question = "No ignore list loaded, still continue?"
+        question = "No ignore list loaded, still continue? All Initiatives will be updated!"
         if should_update(question) == "n":
             jira.close()
             sys.exit()
