@@ -459,11 +459,11 @@ def issue_key(link):
 def issue_remaining_estimate(jira, issue):
     # Need to do this to get all information about an issue
     issue = jira.issue(issue.key)
-    if hasattr(issue.fields, "timetracking"):
-        if hasattr(issue.fields.timetracking, "remainingEstimate"):
-            return getattr(issue.fields.timetracking, "remainingEstimate");
+    if issue.fields.timetracking.raw is not None:
+        est = issue.fields.timetracking.raw['remainingEstimateSeconds']
+        return est
     else:
-        print("Warning: Found no estimate!")
+        print("Warning: Found no estimate in {}, returning '0'!".format(issue.key))
         return 0
 
 def gather_epics(jira, key):
