@@ -26,6 +26,14 @@ def get_parser():
     """ Takes care of script argument parsing. """
     parser = ArgumentParser(description='Script used to generate Freeplane mindmap files')
 
+    parser.add_argument('-c', required=False, action="store_true", \
+            default=False, \
+            help='Create ignore list (ignore_estimate.txt) fully populated')
+
+    parser.add_argument('-i', required=False, action="store_true", \
+            default=False, \
+            help='Use ignore list (ignore_estimate.txt)')
+
     parser.add_argument('-p', '--project', required=False, action="store", \
             default="SWG", \
             help='Project type (SWG, PMWG, KWG etc)')
@@ -142,6 +150,15 @@ def update_initiative_estimates(jira, initiatives):
             get_fte_next_cycle(initiative), get_fte_remaining(initiative),
             fte_next_nbr_months, fte_remain_nbr_months))
 
+def create_ignore_list(jira, key):
+    jql = "project={} AND issuetype in (Initiative) AND status not in (Resolved, Closed)".format(key)
+    initiatives = jira.search_issues(jql)
+
+    with open("ignore_estimate.txt", 'w') as f:
+        for i in initiatives:
+            f.write("{} {}\n".format(i.key, i.fields.summary))
+
+
 ################################################################################
 # Config files
 ################################################################################
@@ -185,6 +202,10 @@ def main(argv):
 
     if cfg.args.project:
         key = cfg.args.project
+
+    if cfg.args.c:
+        create_ignore_list(jira, key)
+        exit()
 
     epics = gather_epics(jira, key)
 
