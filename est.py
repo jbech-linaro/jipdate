@@ -58,8 +58,23 @@ def get_parser():
 ################################################################################
 # Estimation
 ################################################################################
+def get_fte_next_cycle(issue):
+    if hasattr(issue.fields, "customfield_11801"):
+        return issue.fields.customfield_11801
+    else:
+        return 0
+
+def get_fte_remaining(issue):
+    if hasattr(issue.fields, "customfield_12000"):
+        return issue.fields.customfield_12000
+    else:
+        return 0
+
 def issue_type(link):
     return link.outwardIssue.fields.issuetype.name
+
+def issue_link_type(link):
+    return link.type.name
 
 def issue_key(link):
     return link.outwardIssue.key
@@ -69,26 +84,27 @@ def issue_remaining_estimate(jira, issue):
         est = issue.fields.timetracking.raw['remainingEstimateSeconds']
         return est
     else:
-        print("Warning: Found no estimate in {}, returning '0'!".format(issue.key))
+        eprint("Warning: Found no estimate in {}, returning '0'!".format(issue.key))
         return 0
 
 def gather_epics(jira, key):
     jql = "project={} AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
     #jql = "project={} AND key in (SWG-260, SWG-262, SWG-323) AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
-    jql = "project={} AND key in (SWG-359, SWG-254) AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
+    #jql = "project={} AND key in (SWG-360, SWG-361) AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
+    jql = "project={} AND key in (SWG-320) AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
     return jira.search_issues(jql)
 
 def find_epic_parent(jira, epic):
     initiative = {}
     for l in epic.fields.issuelinks:
         link = jira.issue_link(l) 
-        if issue_type(link) == "Initiative":
-            #print("E/{}: I/{} ({})".format(epic, issue_key(link), issue_type(link)))
+        if issue_type(link) == "Initiative" and issue_link_type(link) == "Implements":
+            print("E/{}: I/{} ({})".format(epic, issue_key(link), issue_type(link)))
             if len(initiative) == 0:
                 initiative[issue_key(link)] = epic
             else:
-                print("Error: Epic {} has more than one parent!".format(epic_key.key))
-    print("Initiative/Epic: {}".format(initiative))
+                eprint("Error: Epic {} has more than one parent!".format(epic_key.key))
+    vprint("Initiative/Epic: {}".format(initiative))
     return initiative
 
 
@@ -103,7 +119,7 @@ def find_epics_parents(jira, epics):
             else:
                 initiatives[i] = [e]
 
-    print(initiatives)
+    vprint(initiatives)
     return initiatives
 
 def update_initiative_estimates(jira, initiatives):
@@ -114,13 +130,14 @@ def update_initiative_estimates(jira, initiatives):
             # Need to do this to get all information about an issue
             epic = jira.issue(epic.key)
             est = issue_remaining_estimate(jira, epic)
-            print("Epic: {}, remainingEstimate: {}".format(epic, est))
+            vprint("Epic: {}, remainingEstimate: {}".format(epic, est))
             # Add up everything
             fte_remaining += est
             # Add up things for the next cycle
             if hasattr(epic.fields, "labels") and "NEXT-CYCLE" in epic.fields.labels:
                 fte_next_cycle += est
-        print("Initiative {}: fte_next: {} fte_remain: {}".format(i, fte_next_cycle, fte_remaining))
+        initiative = jira.issue(i)
+        print("Initiative {} ({}/{}): fte_next: {} fte_remain: {}".format(i, get_fte_next_cycle(initiative), get_fte_remaining(initiative), fte_next_cycle, fte_remaining))
 
 ################################################################################
 # Config files
