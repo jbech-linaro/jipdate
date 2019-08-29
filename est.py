@@ -456,27 +456,53 @@ def issue_type(link):
 def issue_key(link):
     return link.outwardIssue.key
 
+def issue_remaining_estimate(jira, issue):
+    # Need to do this to get all information about an issue
+    issue = jira.issue(issue.key)
+    if hasattr(issue.fields, "timetracking"):
+        if hasattr(issue.fields.timetracking, "remainingEstimate"):
+            return getattr(issue.fields.timetracking, "remainingEstimate");
+    else:
+        print("Warning: Found no estimate!")
+        return 0
+
 def gather_epics(jira, key):
-    jql = "project={} AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
+    #jql = "project={} AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
+    jql = "project={} AND key in (SWG-260, SWG-262, SWG-323) AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
     return jira.search_issues(jql)
 
 def find_epic_parent(jira, epic):
-    parent = []
+    initiative = {}
     for l in epic.fields.issuelinks:
         link = jira.issue_link(l) 
         if issue_type(link) == "Initiative":
-            print("E/{}: I/{} ({})".format(epic, issue_key(link), issue_type(link)))
-            parent.append(link)
-    return parent
+            #print("E/{}: I/{} ({})".format(epic, issue_key(link), issue_type(link)))
+            if len(initiative) == 0:
+                initiative[issue_key(link)] = epic
+            else:
+                print("Error: Epic {} has more than one parent!".format(epic_key.key))
+    print("Initiative/Epic: {}".format(initiative))
+    return initiative
 
 
-def find_epic_parents(jira, epics):
-    parents = []
+def find_epics_parents(jira, epics):
+    """ Returns a dictionary where Initiative is key and value is a list of Epic Jira objects """
+    initiatives = {}
     for e in epics:
         tmp = find_epic_parent(jira, e)
-        if len(tmp) > 0:
-            parents.append(tmp)
-    print(parents)
+        for i, e in tmp.items():
+            if i in initiatives:
+                initiatives[i].append(e)
+            else:
+                initiatives[i] = [e]
+
+    print(initiatives)
+    return initiatives
+
+def update_initiative_estimates(jira, initiatives):
+    for i, e in initiatives.items():
+        for epic in e:
+            print("Epic: {}, remainingEstimate: {}".format(epic, issue_remaining_estimate(jira, epic)))
 
 ################################################################################
 # End Estimation
@@ -587,7 +613,9 @@ def main(argv):
     for e in epics:
         print(e)
 
-    initiatives = find_epic_parents(jira, epics)
+    initiatives = find_epics_parents(jira, epics)
+
+    update_initiative_estimates(jira, initiatives)
 
     exit()
 
