@@ -81,6 +81,20 @@ def get_fte_remaining(issue):
     else:
         return 0
 
+def update_fte_next_cycle(issue, fte_next):
+    if hasattr(issue.fields, "customfield_11801"):
+        issue.update(fields={'customfield_11801': fte_next}, notify=False)
+    else:
+        print("  Warning: {}: {} doesn't have a FTE next cycle field, no update done!".format(
+            issue.key, issue.fields.summary))
+
+def update_fte_remaining(issue, fte_remain):
+    if hasattr(issue.fields, "customfield_12000"):
+        issue.update(fields={'customfield_12000': fte_next}, notify=False)
+    else:
+        print("  Warning: {}: {} doesn't have a FTE remaining field, no update done!".format(
+            issue.key, issue.fields.summary))
+
 def issue_type(link):
     return link.outwardIssue.fields.issuetype.name
 
@@ -116,7 +130,6 @@ def find_epic_parent(jira, epic):
     vprint("  Initiative/Epic: {}".format(initiative))
     return initiative
 
-
 def find_epics_parents(jira, epics):
     """ Returns a dictionary where Initiative is key and value is a list of Epic Jira objects """
     initiatives = {}
@@ -138,6 +151,8 @@ def update_initiative(jira, initiative, fte_next, fte_remain):
         return
 
     print("  Updating FTE in {}".format(initiative.key))
+    update_fte_next_cycle(initiative, fte_next)
+    update_fte_remaining(initiative, fte_remain)
 
 def update_initiative_estimates(jira, initiatives):
     for i, e in initiatives.items():
@@ -180,6 +195,15 @@ def load_ignore_list():
             issue = i.split()[0]
             print("  {}".format(issue))
             IGNORE_LIST.append(issue)
+
+def should_update(question):
+    """ A yes or no dialogue. """
+    while True:
+        answer = input(question + " [y/n] ").lower().strip()
+        if answer in set(['y', 'n']):
+            return answer
+        else:
+            print("Incorrect input: %s" % answer)
 
 ################################################################################
 # Config files
@@ -232,6 +256,15 @@ def main(argv):
 
     if cfg.args.i:
         load_ignore_list()
+        question = "Ignore list correct? Still continue?"
+        if should_update(question) == "n":
+            jira.close()
+            sys.exit()
+    else:
+        question = "No ignore list loaded, still continue?"
+        if should_update(question) == "n":
+            jira.close()
+            sys.exit()
 
     epics = gather_epics(jira, key)
 
