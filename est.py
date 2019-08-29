@@ -14,6 +14,11 @@ import cfg
 import jiralogin
 from helper import vprint, eprint
 
+JQL = "project={} AND issuetype in (Epic) AND status not in (Resolved, Closed)"
+#JQL = "project={} AND key in (SWG-260, SWG-262, SWG-323) AND issuetype in (Epic) AND status not in (Resolved, Closed)"
+#JQL = "project={} AND key in (SWG-360, SWG-361) AND issuetype in (Epic) AND status not in (Resolved, Closed)"
+#JQL = "project={} AND key in (SWG-320) AND issuetype in (Epic) AND status not in (Resolved, Closed)"
+
 ################################################################################
 # Argument parser
 ################################################################################
@@ -58,6 +63,16 @@ def get_parser():
 ################################################################################
 # Estimation
 ################################################################################
+def seconds_per_day():
+    """ 60 seconds * 60 minutes * 8 hours """
+    return 60*60*8
+
+def seconds_per_week():
+    return seconds_per_day() * 5.0
+
+def seconds_per_month():
+    return seconds_per_week() * 4.0
+
 def get_fte_next_cycle(issue):
     if hasattr(issue.fields, "customfield_11801"):
         return issue.fields.customfield_11801
@@ -84,22 +99,19 @@ def issue_remaining_estimate(jira, issue):
         est = issue.fields.timetracking.raw['remainingEstimateSeconds']
         return est
     else:
-        eprint("Warning: Found no estimate in {}, returning '0'!".format(issue.key))
+        eprint("Warning: Found no estimate in Epic {}, returning '0'!".format(issue.key))
         return 0
 
 def gather_epics(jira, key):
-    jql = "project={} AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
-    #jql = "project={} AND key in (SWG-260, SWG-262, SWG-323) AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
-    #jql = "project={} AND key in (SWG-360, SWG-361) AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
-    jql = "project={} AND key in (SWG-320) AND issuetype in (Epic) AND status not in (Resolved, Closed)".format(key)
-    return jira.search_issues(jql)
+    global JQL
+    return jira.search_issues(JQL.format(key))
 
 def find_epic_parent(jira, epic):
     initiative = {}
     for l in epic.fields.issuelinks:
         link = jira.issue_link(l) 
         if issue_type(link) == "Initiative" and issue_link_type(link) == "Implements":
-            print("E/{}: I/{} ({})".format(epic, issue_key(link), issue_type(link)))
+            print("E/{} ... found parent I/{}".format(epic, issue_key(link)))
             if len(initiative) == 0:
                 initiative[issue_key(link)] = epic
             else:
@@ -137,7 +149,9 @@ def update_initiative_estimates(jira, initiatives):
             if hasattr(epic.fields, "labels") and "NEXT-CYCLE" in epic.fields.labels:
                 fte_next_cycle += est
         initiative = jira.issue(i)
-        print("Initiative {} ({}/{}): fte_next: {} fte_remain: {}".format(i, get_fte_next_cycle(initiative), get_fte_remaining(initiative), fte_next_cycle, fte_remaining))
+        fte_next_nbr_months = fte_next_cycle / seconds_per_month()
+        fte_remain_nbr_months = fte_remaining / seconds_per_month()
+        print("Initiative {} Current(N/R): {}/{}: True(N/R): {}/{}".format(i, get_fte_next_cycle(initiative), get_fte_remaining(initiative), fte_next_nbr_months, fte_remain_nbr_months))
 
 ################################################################################
 # Config files
@@ -166,6 +180,7 @@ def initiate_config():
 # Main function
 ################################################################################
 def main(argv):
+    global JQL
     parser = get_parser()
 
     # The parser arguments (cfg.args) are accessible everywhere after this call.
@@ -191,44 +206,12 @@ def main(argv):
     for e in epics:
         print(e)
 
+    print("Processing all Epics found by JQL query:\n  '{}'".format(JQL.format(key)))
     initiatives = find_epics_parents(jira, epics)
 
     update_initiative_estimates(jira, initiatives)
 
-    exit()
-
-
-    # Open and initialize the file
-    f = open_file(key + ".mm")
-
-    # Temporary dictorionary to keep track the data (issues) that we already
-    # have dealt with.
-    d_handled = {}
-
-    # Build the main tree with Initiatives beloninging to the project.
-    nodes = build_initiatives_tree(jira, key, d_handled)
-
-    # Take care of the orphans, i.e., those who has no connection to any
-    # initiative in your project.
-    nodes_orpans  = build_orphans_tree(jira, key, d_handled)
-
-    # FIXME: We run through this once more since, when we run it the first time
-    # we will catch Epics and Stories who are not linked with
-    # "implements/implemented by" but instead uses the so called "Epic" link.
-    nodes_orpans  = build_orphans_tree(jira, key, d_handled)
-
-    # Dump the main tree to file
-    for n in sorted(nodes):
-        n.to_xml(f)
-
-    orphan_node_start(f)
-    for n in sorted(nodes_orpans):
-        n.to_xml(f)
-    orphan_node_end(f)
-
-    # End the file
-    root_nodes_end(f)
-    f.close()
+    jira.close()
 
 if __name__ == "__main__":
     main(sys.argv)
