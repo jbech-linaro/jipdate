@@ -26,17 +26,9 @@ def get_parser():
     """ Takes care of script argument parsing. """
     parser = ArgumentParser(description='Script used to generate Freeplane mindmap files')
 
-    parser.add_argument('-i', required=False, action="store_true", \
-            default=False, \
-            help='Show Initiatives only')
-
     parser.add_argument('-p', '--project', required=False, action="store", \
             default="SWG", \
-            help='Project type (SWG, VIRT, KWG etc)')
-
-    parser.add_argument('-s', required=False, action="store_true", \
-            default=False, \
-            help='Show stories also')
+            help='Project type (SWG, PMWG, KWG etc)')
 
     parser.add_argument('-t', required=False, action="store_true", \
             default=False, \
@@ -45,18 +37,6 @@ def get_parser():
     parser.add_argument('-v', required=False, action="store_true", \
             default=False, \
             help='Output some verbose debugging info')
-
-    parser.add_argument('--all', required=False, action="store_true", \
-            default=False, \
-            help='Load all Jira issues, not just the once marked in progress.')
-
-    parser.add_argument('--desc', required=False, action="store_true", \
-            default=False, \
-            help='Add description to the issues')
-
-    parser.add_argument('--test', required=False, action="store_true", \
-            default=False, \
-            help='Run test case and then exit')
 
     return parser
 
@@ -72,6 +52,12 @@ def seconds_per_week():
 
 def seconds_per_month():
     return seconds_per_week() * 4.0
+
+def to_months(seconds):
+    return seconds / seconds_per_month()
+
+def to_seconds(months):
+    return months * seconds_per_month()
 
 def get_fte_next_cycle(issue):
     if hasattr(issue.fields, "customfield_11801"):
@@ -149,9 +135,12 @@ def update_initiative_estimates(jira, initiatives):
             if hasattr(epic.fields, "labels") and "NEXT-CYCLE" in epic.fields.labels:
                 fte_next_cycle += est
         initiative = jira.issue(i)
-        fte_next_nbr_months = fte_next_cycle / seconds_per_month()
-        fte_remain_nbr_months = fte_remaining / seconds_per_month()
-        print("Initiative {} Current(N/R): {}/{}: True(N/R): {}/{}".format(i, get_fte_next_cycle(initiative), get_fte_remaining(initiative), fte_next_nbr_months, fte_remain_nbr_months))
+        fte_next_nbr_months = to_months(fte_next_cycle)
+        fte_remain_nbr_months = to_months(fte_remaining)
+        print("Initiative {} Current(N/R): {}/{}: True(N/R): {}/{}".format(
+            i,
+            get_fte_next_cycle(initiative), get_fte_remaining(initiative),
+            fte_next_nbr_months, fte_remain_nbr_months))
 
 ################################################################################
 # Config files
@@ -191,10 +180,6 @@ def main(argv):
     initiate_config()
 
     key = "SWG"
-
-    if cfg.args.test:
-        test()
-        exit()
 
     jira, username = jiralogin.get_jira_instance(cfg.args.t)
 
