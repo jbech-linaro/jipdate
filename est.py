@@ -19,6 +19,8 @@ JQL = "project={} AND issuetype in (Epic) AND status not in (Resolved, Closed)"
 #JQL = "project={} AND key in (SWG-360, SWG-361) AND issuetype in (Epic) AND status not in (Resolved, Closed)"
 #JQL = "project={} AND key in (SWG-320) AND issuetype in (Epic) AND status not in (Resolved, Closed)"
 
+IGNORE_LIST = []
+
 ################################################################################
 # Argument parser
 ################################################################################
@@ -93,11 +95,12 @@ def issue_remaining_estimate(jira, issue):
         est = issue.fields.timetracking.raw['remainingEstimateSeconds']
         return est
     else:
-        eprint("Warning: Found no estimate in Epic {}, returning '0'!".format(issue.key))
+        eprint("  Warning: Found no estimate in Epic {}, returning '0'!".format(issue.key))
         return 0
 
 def gather_epics(jira, key):
     global JQL
+    print("Running query for Epics ...\n")
     return jira.search_issues(JQL.format(key))
 
 def find_epic_parent(jira, epic):
@@ -105,12 +108,12 @@ def find_epic_parent(jira, epic):
     for l in epic.fields.issuelinks:
         link = jira.issue_link(l) 
         if issue_type(link) == "Initiative" and issue_link_type(link) == "Implements":
-            print("E/{} ... found parent I/{}".format(epic, issue_key(link)))
+            print("  E/{} ... found parent I/{}".format(epic, issue_key(link)))
             if len(initiative) == 0:
                 initiative[issue_key(link)] = epic
             else:
-                eprint("Error: Epic {} has more than one parent!".format(epic_key.key))
-    vprint("Initiative/Epic: {}".format(initiative))
+                eprint("  Error: Epic {} has more than one parent!".format(epic_key.key))
+    vprint("  Initiative/Epic: {}".format(initiative))
     return initiative
 
 
@@ -128,27 +131,37 @@ def find_epics_parents(jira, epics):
     vprint(initiatives)
     return initiatives
 
+def update_initiative(jira, initiative, fte_next, fte_remain):
+    global IGNORE_LIST
+    if initiative.key in IGNORE_LIST:
+        print("  NOT updating {} (found in the ignore list)".format(initiative.key))
+        return
+
+    print("  Updating FTE in {}".format(initiative.key))
+
 def update_initiative_estimates(jira, initiatives):
     for i, e in initiatives.items():
+        initiative = jira.issue(i)
+        print("\nWorking with Initiative {}: {}".format(initiative.key, initiative.fields.summary))
         fte_next_cycle = 0
         fte_remaining = 0
         for epic in e:
             # Need to do this to get all information about an issue
             epic = jira.issue(epic.key)
             est = issue_remaining_estimate(jira, epic)
-            vprint("Epic: {}, remainingEstimate: {}".format(epic, est))
+            vprint("  Epic: {}, remainingEstimate: {}".format(epic, est))
             # Add up everything
             fte_remaining += est
             # Add up things for the next cycle
             if hasattr(epic.fields, "labels") and "NEXT-CYCLE" in epic.fields.labels:
                 fte_next_cycle += est
-        initiative = jira.issue(i)
         fte_next_nbr_months = to_months(fte_next_cycle)
         fte_remain_nbr_months = to_months(fte_remaining)
-        print("Initiative {} Current(N/R): {}/{}: True(N/R): {}/{}".format(
+        print("  Initiative {} Current(N/R): {}/{}: True(N/R): {}/{}".format(
             i,
             get_fte_next_cycle(initiative), get_fte_remaining(initiative),
             fte_next_nbr_months, fte_remain_nbr_months))
+        update_initiative(jira, initiative, fte_next_nbr_months, fte_remain_nbr_months)
 
 def create_ignore_list(jira, key):
     jql = "project={} AND issuetype in (Initiative) AND status not in (Resolved, Closed)".format(key)
@@ -158,6 +171,15 @@ def create_ignore_list(jira, key):
         for i in initiatives:
             f.write("{} {}\n".format(i.key, i.fields.summary))
 
+def load_ignore_list():
+    global IGNORE_LIST
+    with open("ignore_estimate.txt", 'r') as f:
+        initiatives = f.readlines()
+        print("Adding following to the ignore list (no estimate updates for these):")
+        for i in initiatives:
+            issue = i.split()[0]
+            print("  {}".format(issue))
+            IGNORE_LIST.append(issue)
 
 ################################################################################
 # Config files
@@ -187,6 +209,7 @@ def initiate_config():
 ################################################################################
 def main(argv):
     global JQL
+    global IGNORE_LIST
     parser = get_parser()
 
     # The parser arguments (cfg.args) are accessible everywhere after this call.
@@ -207,10 +230,10 @@ def main(argv):
         create_ignore_list(jira, key)
         exit()
 
-    epics = gather_epics(jira, key)
+    if cfg.args.i:
+        load_ignore_list()
 
-    for e in epics:
-        print(e)
+    epics = gather_epics(jira, key)
 
     print("Processing all Epics found by JQL query:\n  '{}'".format(JQL.format(key)))
     initiatives = find_epics_parents(jira, epics)
@@ -218,6 +241,7 @@ def main(argv):
     update_initiative_estimates(jira, initiatives)
 
     jira.close()
+    print("Done!")
 
 if __name__ == "__main__":
     main(sys.argv)
