@@ -563,7 +563,6 @@ def parse_tickets(jira):
                 label = ticket['label']
                 upstream = ticket['upstream']
                 epic_name = ticket['epic_name']
-                acceptance_criteria = ticket['acceptance_criteria'][0]
                 time_estimate = week_to_s(ticket['time_estimate'])
                 print("project: %s" % p)
                 print("summary: %s" % s)
@@ -572,7 +571,6 @@ def parse_tickets(jira):
                 print("Lead project: %s" % lp)
                 print("label: %s" % label)
                 print("Upstream: %s" % upstream)
-                print("Acceptance Criteria: %s" % acceptance_criteria)
                 print("Epic Name: %s" % epic_name)
                 if i == "Epic":
                     query = { 'project':p,
@@ -581,7 +579,6 @@ def parse_tickets(jira):
                               'issuetype': {'name': i},
                               'customfield_10006':epic_name,
                               'customfield_10010': {'value' : upstream},
-                              'customfield_10105':acceptance_criteria,
                               'customfield_10043':[{'value' : lp}] }
                     if label is not None:
                         query['labels'] = [label]
