@@ -1,0 +1,49 @@
+project: SWG
+lead_project: Open Source Security
+label:
+upstream: "Yes"
+acceptance_criteria:
+time_estimate: 6
+issuetype: Epic
+summary: PKCS#11 - Signature and MAC functions
+epic_name: PKCS#11 - Signature and MAC functions
+description:
+        - |
+          h1. Deliverables
+          This Epic is about implementing the signature and MAC functions in OP-TEE as described in the PKCS#11 API. The list of PKCS#11 functions that we intend to implement in this Epic are:
+          * C_Sign(), signs single-part data
+          * C_SignInit(), initializes a signature operation
+          * C_SignUpdate(), continues a multiple-part signature operation
+          * C_SignFinal(), finishes a multiple-part signature operation
+          * C_Verify(), verifies a signature on single-part data
+          * C_VerifyInit(), initializes a verification operation
+          * C_VerifyUpdate(), continues a multiple-part verification operation
+          * C_VerifyFinal(), finishes a multiple-part verification operation
+          {color:red}
+          * Etienne, what about these?
+          {color}
+          * C_SignRecoverInit, initializes a signature operation, where the data can be recovered from the signature
+          * C_SignRecover, signs single-part data, where the data can be recovered from the signature
+          * C_VerifyRecoverInit, initializes a verification operation where the data is recovered from the signature
+          * C_VerifyRecover, verifies a signature on single-part data, where the data is recovered from the signature
+
+          {color:red}
+          * Etienne, what CKM_ should we use when doing this implementation? Also see "out of scope" below.
+          {color}
+
+          For most functions mentioned here, we need to write code in optee_os, optee_client and optee_test. I.e., these functions are called on the client side, but in most cases there is a 1:1 mapping to a function on secure side also (as a service in a Trusted Application).
+
+          h1. Out of Scope
+          This is about adding the boiler plate code for the signature and MAC functions. Note that there are several mechanisms that can be provided as parameters. I.e., I.e., depending on the parameter you can generate and verify signatures and MACs using different signature algorithms. This card is not about adding support for all these mechanisms. Support for that will be done in separate Epics.
+
+          h1. Risks and Assumptions
+          Assumptions: possible to implement this as a standalone component.
+
+          h1. Acceptance Criteria
+          |
+          ||Criteria||Status||Closeout Notes/Links||
+          |Patches upstream implementing PKCS#11 signature and MAC API in OP-TEE (Armv7-A and Armv8-A)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          |Patches upstream enabling tests for the PKCS#11 signature and MAC API |(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+
+          Legend:
+          ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||

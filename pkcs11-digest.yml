@@ -1,0 +1,37 @@
+project: SWG
+lead_project: Open Source Security
+label:
+upstream: "Yes"
+acceptance_criteria:
+time_estimate: 4
+issuetype: Epic
+summary: PKCS#11 - Digest functions
+epic_name: PKCS#11 - Digest functions
+description:
+        - |
+          h1. Deliverables
+          This Epic is about implementing the message digest functions in PKCS#11. The list of PKCS#11 functions that we intend to implement in this Epic are:
+          * C_DigestInit, initializes a message-digesting operation
+          * C_Digest, digests single-part data
+          * C_DigestUpdate, continues a multiple-part digesting operation
+          * C_DigestKey, digests a key
+          * C_DigestFinal, finishes a multiple-part digesting operation
+
+          Since this is about writing the boiler plate code for the functions we will simply just use [CKM_SHA_1|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/csprd02/pkcs11-curr-v2.40-csprd02.html#_Toc387327864] when writing this Epic. For other mechanisms, please see the comment in the "Out of Scope" section further down.
+
+          For most functions mentioned here, we need to write code in optee_os, optee_client and optee_test. I.e., these functions are called on the client side, but in most cases there is a 1:1 mapping to a function on secure side also (as a service in a Trusted Application).
+
+          h1. Out of Scope
+          This is about adding the boiler plate code for the generic digest functions. Note that there are several mechanisms that can be provided as parameters. I.e., I.e., depending on the parameter you can generate digests using various algorithms. This card is not about adding support for all these mechanisms. Support for that will be done in separate Epics.
+
+          h1. Risks and Assumptions
+          Assumptions: possible to implement this as a standalone component.
+
+          h1. Acceptance Criteria
+          |
+          ||Criteria||Status||Closeout Notes/Links||
+          |Patches upstream implementing PKCS#11 digest functions in OP-TEE (Armv7-A and Armv8-A)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          |Patches upstream enabling tests for the PKCS#11 digest functions |(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+
+          Legend:
+          ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||
