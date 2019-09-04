@@ -5,17 +5,18 @@ upstream: "Yes"
 acceptance_criteria:
 time_estimate: 6
 issuetype: Epic
-summary: SCMI - Clock management agent in OP-TEE
-epic_name: SCMI - Clock management agent in OP-TEE
+summary: SCMI - Power Domain agent in OP-TEE
+epic_name: SCMI - Power Domain agent in OP-TEE
 description:
         - |
           h1. Deliverables
-          The clock management (protocol) is intended for management of clocks. It is used to enable or disable clocks, and to set rates. The protocol provides commands to:
+          The power domain protocol is intended for management of power states of power domains. The power domain management protocol provides commands to:
           * Describe the protocol version.
           * Discover implementation attributes.
-          * Describe a clock.
-          * Enable or disable a clock.
-          * Set the rate of the clock synchronously or asynchronously.
+          * Set the power state of a domain.
+          * Get the current power state of a domain.
+          * Optionally get notifications when power domains change state or when an agent requests for a power domain state change.
+          * Optionally return statistics on residency and usage count of a given power state.
 
           In OP-TEE in S-EL (TEE core) we will need to implement a SCMI agent (client) that can request for power domain state changes.
           {color:red}
