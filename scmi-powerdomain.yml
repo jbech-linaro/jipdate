@@ -18,21 +18,21 @@ description:
           * Optionally get notifications when power domains change state or when an agent requests for a power domain state change.
           * Optionally return statistics on residency and usage count of a given power state.
 
-          In OP-TEE in S-EL (TEE core) we will need to implement a SCMI agent (client) that can request for power domain state changes.
+          In OP-TEE (TEE core) we will need to implement a SCMI agent (client) that can request for power domain state changes.
           {color:red}
           Question to Etienne, will the power domain agent also need to get notifications on power domain state changes?
           {color}
 
           h1. Out of Scope
-          This card is only about adding a client to OP-TEE, i.e., S-EL1 (and not TF-A, EL3).
+          This card is only about adding a client to OP-TEE (TEE core). I.e., other boot binaries, boot loaders are not part of this Epic.
 
           h1. Risks and Assumptions
-          Assumptions: possible to implement this as a standalone 
+          Assumptions: possible to implement this as a standalone component.
 
           h1. Acceptance Criteria Example and Notes (Optional)
           |
           ||Criteria||Status||Closeout Notes/Links||
-          |Patches upstream implementing the a SCMI power domain client in OP-TEE S-EL1]|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          |Patches upstream implementing a SCMI power domain client in OP-TEE (Armv7-A, Armv8-A)]|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
           |Patches upstream enabling tests for the SCMI power domain client|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
 
           Legend:
