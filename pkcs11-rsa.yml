@@ -27,7 +27,7 @@ description:
 
           Note that this depends on [SWG-XYZ] (PKCS#11 - Signature and MAC functions), [SWG-XYZ] (PKCS#11 - Symmetric cipher) and [SWG-XYZ] (PKCS#11 - Key management functions).
 
-          For most functions mentioned here, we need to write code in optee_os, optee_client and optee_test. I.e., these functions are called on the client side, but in most cases there is a 1:1 mapping to a function on secure side also (as a service in a Trusted Application).
+          For the support mentioned here, we need to write code in optee_os, optee_client and optee_test to add support for these crypto mechanisms to existing implementation of C_DeriveKey() from [SWG-XYZ] (PKCS#11 - Key management function).
 
           h1. Out of Scope
           Following RSA mechanisms are not considered in this card.

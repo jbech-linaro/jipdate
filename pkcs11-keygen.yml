@@ -17,12 +17,19 @@ description:
           * C_UnwrapKey, unwraps (decrypts) a key
           * C_DeriveKey, derives a key from a base key
 
-          Since this is about writing the boiler plate code for the functions we will simply just use [CKM_AES_KEY_GEN|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/csprd02/pkcs11-curr-v2.40-csprd02.html#_Toc387327804] when writing this Epic. For other mechanisms, please see the comment in the "Out of Scope" section further down.
+          Since this is about writing the boilerplate code for the functions we will just use these mechanisms when writing this Epic.
+          * [CKM_AES_KEY_GEN|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/csprd02/pkcs11-curr-v2.40-csprd02.html#_Toc387327804], generically used.
+          * Wrapping: [CKM_AES_ECB|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/cs01/pkcs11-curr-v2.40-cs01.html#_Toc399398920] and [CKM_AES_CBC]|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/cs01/pkcs11-curr-v2.40-cs01.html#_Toc399398921].
+          * Derivation: [CKM_AES_ECB|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/cs01/pkcs11-curr-v2.40-cs01.html#_Toc399398920] (CKM_AES_ECB_ENCRYPT_DATA) and [CKM_AES_CBC]|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/cs01/pkcs11-curr-v2.40-cs01.html#_Toc399398921] (CKM_AES_CBC_ENCRYPT_DATA).
+
+          For other mechanisms, please see the comment in the "Out of Scope" section further down.
+
+          This card depends on [SWG-XYZ] (PKCS#11 - Basic secure object support).
 
           For most functions mentioned here, we need to write code in optee_os, optee_client and optee_test. I.e., these functions are called on the client side, but in most cases there is a 1:1 mapping to a function on secure side also (as a service in a Trusted Application).
 
           h1. Out of Scope
-          This is about adding the boiler plate code for the key generation functions. Note that there are several mechanisms that can be provided as parameters. I.e., I.e., depending on the parameter you can generate different keys to be used with various algorithms. This card is not about adding support for all these mechanisms. Support for that will be done in separate Epics.
+          This is about adding the boilerplate code for the key generation functions. Note that there are several mechanisms that can be provided as parameters. I.e., depending on the parameter you can generate different keys to be used with various algorithms. This card is not about adding support for all these mechanisms. Support for that will be done in separate Epics.
 
           h1. Risks and Assumptions
           Assumptions: possible to implement this as a standalone component.

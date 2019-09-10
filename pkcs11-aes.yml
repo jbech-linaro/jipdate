@@ -14,10 +14,11 @@ This Epic is about implementing support for a subset of the [AES mechanisms|http
           * CKM_AES_ECB
           * CKM_AES_CBC
           * CKM_AES_CBC_PAD
+          * CKM_AES_CTR
+          * CKM_AES_CTS
           * CKM_AES_MAC_GENERAL
           * CKM_AES_MAC
           * CKM_AES_OFB
-          * CKM_AES_XTS
           * CKM_AES_KEY_GEN, note that this is implemented in [SWG-XYZ](PKCS#11 - Key management functions)
 
           Note that this depends on [SWG-XYZ] (PKCS#11 - Signature and MAC functions), [SWG-XYZ] (PKCS#11 - Symmetric cipher) and [SWG-XYZ] (PKCS#11 - Key management functions).

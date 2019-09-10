@@ -11,14 +11,12 @@ description:
         - |
           h1. Deliverables
           This Epic is about implementing the object management functions in PKCS#11. These functions adds support for creation and destruction of properties and values. The list of PKCS#11 functions that we intend to implement in this Epic are:
-          * C_GenerateKey(), generates a secret key {color:red} Etienne? Move to "Key management" Epic instead?{color}
           * C_CreateObject(), creates an object
           * C_DestroyObject(), destroys an object
           * C_FindObjectsInit(), initializes an object search operation
           * C_FindObjects(), continues an object search operation
           * C_FindObjectsFinal(), finishes an object search operation
           * C_GetAttributeValue(), obtains an attribute value of an object
-          {color:red} Etienne? What about these?{color}
           * C_CopyObject, creates a copy of an object
           * C_GetObjectSize, obtains the size of an object in bytes
           * C_SetAttributeValue, modifies an attribute value of an object
@@ -26,7 +24,7 @@ description:
           For most functions mentioned here, we need to write code in optee_os, optee_client and optee_test. I.e., these functions are called on the client side, but in most cases there is a 1:1 mapping to a function on secure side also (as a service in a Trusted Application).
 
           h1. Out of Scope
-          N/A
+          * C_GenerateKey(), generates a secret key. This is done in [SWG-XYZ] (PKCS#11 - Key management functions).
 
           h1. Risks and Assumptions
           Assumptions: possible to implement this as a standalone component.

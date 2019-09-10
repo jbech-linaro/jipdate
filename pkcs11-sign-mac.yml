@@ -19,22 +19,18 @@ description:
           * C_VerifyInit(), initializes a verification operation
           * C_VerifyUpdate(), continues a multiple-part verification operation
           * C_VerifyFinal(), finishes a multiple-part verification operation
-          {color:red}
-          * Etienne, what about these?
-          {color}
+
+          Since this is about writing the boilerplate code for the functions we will simply just use [CKM_SHA256_HMAC|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/cs01/pkcs11-curr-v2.40-cs01.html#_Toc399398983] when writing this Epic. For other mechanisms, please see the comment in the "Out of Scope" section further down.
+
+          For most functions mentioned here, we need to write code in optee_os, optee_client and optee_test. I.e., these functions are called on the client side, but in most cases there is a 1:1 mapping to a function on secure side also (as a service in a Trusted Application).
+
+          h1. Out of Scope
           * C_SignRecoverInit, initializes a signature operation, where the data can be recovered from the signature
           * C_SignRecover, signs single-part data, where the data can be recovered from the signature
           * C_VerifyRecoverInit, initializes a verification operation where the data is recovered from the signature
           * C_VerifyRecover, verifies a signature on single-part data, where the data is recovered from the signature
 
-          {color:red}
-          * Etienne, what CKM_ should we use when doing this implementation? Also see "out of scope" below.
-          {color}
-
-          For most functions mentioned here, we need to write code in optee_os, optee_client and optee_test. I.e., these functions are called on the client side, but in most cases there is a 1:1 mapping to a function on secure side also (as a service in a Trusted Application).
-
-          h1. Out of Scope
-          This is about adding the boiler plate code for the signature and MAC functions. Note that there are several mechanisms that can be provided as parameters. I.e., I.e., depending on the parameter you can generate and verify signatures and MACs using different signature algorithms. This card is not about adding support for all these mechanisms. Support for that will be done in separate Epics.
+          This is about adding the boilerplate code for the signature and MAC functions. Note that there are several mechanisms that can be provided as parameters. I.e., depending on the parameter you can generate and verify signatures and MACs using different signature algorithms. This card is not about adding support for all these mechanisms. Support for that will be done in separate Epics.
 
           h1. Risks and Assumptions
           Assumptions: possible to implement this as a standalone component.

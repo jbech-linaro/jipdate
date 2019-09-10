@@ -20,14 +20,12 @@ description:
           * C_DecryptUpdate(), continues a multiple-part decryption operation
           * C_DecryptFinal(), finishes a multiple-part decryption operation
 
-          {color:red}
-          * Etienne, we need to figure out what CK_MECHANISM to support also. Instead of supporting "everything" we could have a separate Epics for AES (ECB, CBC, CTR etc). However for this particular card it'll probably be good to use a single and simple CK_MECHANISM like AES-ECB ([CKM_AES_ECB|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/csprd02/pkcs11-curr-v2.40-csprd02.html#_Toc387327808]). See my "out of scope" section below.
-          {color}
+          Since this is about writing the boilerplate code for the functions we will simply just use [CKM_AES_ECB|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/csprd02/pkcs11-curr-v2.40-csprd02.html#_Toc387327808] when writing this Epic. For other mechanisms, please see the comment in the "Out of Scope" section further down.
 
           For most functions mentioned here, we need to write code in optee_os, optee_client and optee_test. I.e., these functions are called on the client side, but in most cases there is a 1:1 mapping to a function on secure side also (as a service in a Trusted Application).
 
           h1. Out of Scope
-          This is about adding the boiler plate code for the symmetric cipher functions. Note that there are several mechanisms that can be provided as parameters. I.e., I.e., depending on the parameter you can run different ciphers and modes. This card is not about supporting all ciphers and modes. Support for that will be done in separate Epics.
+          This is about adding the boilerplate code for the symmetric cipher functions. Note that there are several mechanisms that can be provided as parameters. I.e., depending on the parameter you can run different ciphers and modes. This card is not about supporting all ciphers and modes. Support for that will be done in separate Epics.
 
           h1. Risks and Assumptions
           Assumptions: possible to implement this as a standalone component.
