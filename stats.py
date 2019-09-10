@@ -129,6 +129,7 @@ def main(argv):
 
     with open("stats.txt", 'w') as f:
         jql = "project={} AND issuetype in (Epic, Initiative)".format(project)
+        #jql = "project={} AND issuetype in (Epic, Initiative) AND status not in (Resolved, Closed)".format(project)
         print("JQL: \"{}\"".format(jql))
         issues = jira.search_issues(jql)
         total = issues.total
