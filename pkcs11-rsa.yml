@@ -1,0 +1,64 @@
+project: SWG
+lead_project: Open Source Security
+label:
+upstream: "Yes"
+acceptance_criteria:
+time_estimate: 6
+issuetype: Epic
+summary: PKCS#11 - RSA mechanisms
+epic_name: PKCS#11 - RSA mechanisms
+description:
+        - |
+          h1. Deliverables
+          This Epic is about implementing support for a subset of the [RSA mechanisms|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/os/pkcs11-curr-v2.40-os.html#_Toc416959967] defined by PKCS#11. By subset we have tried identify the most commonly used mechanisms. The list of PKCS#11 mechanisms that we intend to implement in this Epic are:
+          * CKM_RSA_PKCS
+          * CKM_RSA_PKCS_OAEP
+          * CKM_RSA_PKCS_PSS
+          * CKM_RSA_X_509
+          * CKM_SHA1_RSA_PKCS
+          * CKM_SHA256_RSA_PKCS
+          * CKM_SHA384_RSA_PKCS
+          * CKM_SHA512_RSA_PKCS
+          * CKM_SHA1_RSA_PKCS_PSS
+          * CKM_SHA256_RSA_PKCS_PSS
+          * CKM_SHA384_RSA_PKCS_PSS
+          * CKM_SHA512_RSA_PKCS_PSS
+          * CKM_RSA_PKCS_KEY_PAIR_GEN
+
+          Note that this depends on [SWG-XYZ] (PKCS#11 - Signature and MAC functions), [SWG-XYZ] (PKCS#11 - Symmetric cipher) and [SWG-XYZ] (PKCS#11 - Key management functions).
+
+          For the support mentioned here, we need to write code in optee_os, optee_client and optee_test to add support for these crypto mechanisms to existing implementation of C_DeriveKey() from [SWG-XYZ] (PKCS#11 - Key management function).
+
+          h1. Out of Scope
+          Following RSA mechanisms are not considered in this card.
+          * CKM_RSA_X9_31_KEY_PAIR_GEN
+          * CKM_RSA_9796
+          * CKM_RSA_X9_31
+          * CKM_SHA1_RSA_X9_31
+          * CKM_RSA_PKCS_TPM_1_1
+          * CKM_RSA_PKCS_OAEP_TPM_1_1
+
+          h1. Risks and Assumptions
+          Assumptions: possible to implement this as a standalone component.
+
+          h1. Acceptance Criteria
+          |
+          ||Criteria||Status||Closeout Notes/Links||
+          |Patches upstream implementing PKCS#11 subset of RSA mechanisms mentioned in the deliverables section in OP-TEE (Armv7-A and Armv8-A)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          |Patches upstream enabling tests for the PKCS#11 subset of RSA mechanisms |(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          | CKM_RSA_PKCS, implemented/upstream |(x)| |
+          | CKM_RSA_PKCS_OAEP, implemented/upstream |(x)| |
+          | CKM_RSA_PKCS_PSS, implemented/upstream |(x)| |
+          | CKM_RSA_X_509, implemented/upstream |(x)| |
+          | CKM_SHA1_RSA_PKCS, implemented/upstream |(x)| |
+          | CKM_SHA256_RSA_PKCS, implemented/upstream |(x)| |
+          | CKM_SHA384_RSA_PKCS, implemented/upstream |(x)| |
+          | CKM_SHA512_RSA_PKCS, implemented/upstream |(x)| |
+          | CKM_SHA1_RSA_PKCS_PSS, implemented/upstream |(x)| |
+          | CKM_SHA256_RSA_PKCS_PSS, implemented/upstream |(x)| |
+          | CKM_SHA384_RSA_PKCS_PSS, implemented/upstream |(x)| |
+          | CKM_SHA512_RSA_PKCS_PSS, implemented/upstream |(x)| |
+          | CKM_RSA_PKCS_KEY_PAIR_GEN, implemented/upstream |(x)| |
+
+          Legend:
+          ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||

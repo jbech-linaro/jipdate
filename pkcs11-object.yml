@@ -1,0 +1,48 @@
+project: SWG
+lead_project: Open Source Security
+label:
+upstream: "Yes"
+acceptance_criteria:
+time_estimate: 4
+issuetype: Epic
+summary: PKCS#11 - Basic secure object support
+epic_name: PKCS#11 - Basic secure object support
+description:
+        - |
+          h1. Deliverables
+          This Epic is about implementing the object management functions in PKCS#11. These functions adds support for creation and destruction of properties and values. The list of PKCS#11 functions that we intend to implement in this Epic are:
+          * C_CreateObject(), creates an object
+          * C_DestroyObject(), destroys an object
+          * C_FindObjectsInit(), initializes an object search operation
+          * C_FindObjects(), continues an object search operation
+          * C_FindObjectsFinal(), finishes an object search operation
+          * C_GetAttributeValue(), obtains an attribute value of an object
+          * C_CopyObject, creates a copy of an object
+          * C_GetObjectSize, obtains the size of an object in bytes
+          * C_SetAttributeValue, modifies an attribute value of an object
+          * C_GenerateKey(), generates a secret key
+
+          For most functions mentioned here, we need to write code in optee_os, optee_client and optee_test. I.e., these functions are called on the client side, but in most cases there is a 1:1 mapping to a function on secure side also (as a service in a Trusted Application).
+
+          h1. Out of Scope
+
+          h1. Risks and Assumptions
+          Assumptions: possible to implement this as a standalone component.
+
+          h1. Acceptance Criteria
+          |
+          ||Criteria||Status||Closeout Notes/Links||
+          |Patches upstream implementing PKCS#11 basic secure object support in OP-TEE (Armv7-A and Armv8-A)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          |Patches upstream enabling tests for the PKCS#11 basic secure object support |(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          | C_CreateObject() implemented/upstream |(x)| |
+          | C_DestroyObject() implemented/upstream |(x)| |
+          | C_FindObjectsInit() implemented/upstream |(x)| |
+          | C_FindObjects() implemented/upstream |(x)| |
+          | C_FindObjectsFinal() implemented/upstream |(x)| |
+          | C_GetAttributeValue() implemented/upstream |(x)| |
+          | C_CopyObject implemented/upstream |(x)| |
+          | C_GetObjectSize implemented/upstream |(x)| |
+          | C_SetAttributeValue implemented/upstream |(x)| |
+
+          Legend:
+          ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||

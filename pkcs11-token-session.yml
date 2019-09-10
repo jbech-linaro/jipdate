@@ -1,0 +1,51 @@
+project: SWG
+lead_project: Open Source Security
+label:
+upstream: "Yes"
+acceptance_criteria:
+time_estimate: 6
+issuetype: Epic
+summary: PKCS#11 - Basic client token and session support
+epic_name: PKCS#11 - Basic client token and session support
+description:
+        - |
+          h1. Deliverables
+          This Epic is about implementing the basic support for working with client tokens and sessions. The list of PKCS#11 functions that we intend to implement in this Epic are:
+          * C_GetSlotList(), obtains a list of slots in the system
+          * C_GetSlotInfo(), obtains information about a particular slot
+          * C_GetTokenInfo(), obtains information about a particular token
+          * C_GetMechanismList(), obtains a list of mechanisms supported by a token
+          * C_GetMechanismInfo(), obtains information about a particular mechanism
+          * C_InitToken(), initializes a token
+          * C_OpenSession(), opens a connection between an application and a particular token or sets up an application callback for token insertion
+          * C_CloseSession(), closes a session
+          * C_CloseAllSessions(), closes all sessions with a token
+          * C_GetSessionInfo(), obtains information about the session
+
+          For most functions mentioned here, we need to write code in optee_os, optee_client and optee_test. I.e., these functions are called on the client side, but in most cases there is a 1:1 mapping to a function on secure side also (as a service in a Trusted Application).
+
+          h1. Out of Scope
+          * C_WaitForSlotEvent
+          * Session authentication is handled in a separate card (see [SWG-XYZ]).
+
+          h1. Risks and Assumptions
+          Assumptions: possible to implement this as a standalone component.
+
+          h1. Acceptance Criteria
+          |
+          ||Criteria||Status||Closeout Notes/Links||
+          |Patches upstream implementing PKCS#11 basic client token and session support in OP-TEE (Armv7-A and Armv8-A)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          |Patches upstream enabling tests for the PKCS#11 basic client token and session support |(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          | C_GetSlotList() implemented/upstream |(x)| |
+          | C_GetSlotInfo() implemented/upstream |(x)| |
+          | C_GetTokenInfo() implemented/upstream |(x)| |
+          | C_GetMechanismList() implemented/upstream |(x)| |
+          | C_GetMechanismInfo() implemented/upstream |(x)| |
+          | C_InitToken() implemented/upstream |(x)| |
+          | C_OpenSession() implemented/upstream |(x)| |
+          | C_CloseSession() implemented/upstream |(x)| |
+          | C_CloseAllSessions() implemented/upstream |(x)| |
+          | C_GetSessionInfo() implemented/upstream |(x)| |
+
+          Legend:
+          ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||
