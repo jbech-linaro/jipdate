@@ -34,6 +34,10 @@ description:
           ||Criteria||Status||Closeout Notes/Links||
           |Patches upstream implementing PKCS#11 subset of Elliptic curve mechanisms mentioned in the deliverables section in OP-TEE (Armv7-A and Armv8-A)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
           |Patches upstream enabling tests for the PKCS#11 subset of Elliptic curve mechanisms |(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          | CKM_EC_KEY_PAIR_GEN (CKM_ECDSA_KEY_PAIR_GEN), implemented/upstream |(x)| |
+          | CKM_ECDSA, implemented/upstream |(x)| |
+          | CKM_ECDSA_SHA1, implemented/upstream |(x)| |
+          | CKM_ECDH1_DERIVE, implemented/upstream |(x)| |
 
           Legend:
           ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||

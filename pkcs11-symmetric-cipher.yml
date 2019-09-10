@@ -35,6 +35,14 @@ description:
           ||Criteria||Status||Closeout Notes/Links||
           |Patches upstream implementing PKCS#11 symmetric cipher API in OP-TEE (Armv7-A and Armv8-A)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
           |Patches upstream enabling tests for the PKCS#11 symmetric cipher API |(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          | C_Encrypt implemented/upstream |(x)| |
+          | C_EncryptInit() implemented/upstream |(x)| |
+          | C_EncryptUpdate() implemented/upstream |(x)| |
+          | C_EncryptFinal() implemented/upstream |(x)| |
+          | C_Decrypt implemented/upstream |(x)| |
+          | C_DecryptInit() implemented/upstream |(x)| |
+          | C_DecryptUpdate() implemented/upstream |(x)| |
+          | C_DecryptFinal() implemented/upstream |(x)| |
 
           Legend:
           ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||

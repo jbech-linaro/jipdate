@@ -31,6 +31,10 @@ description:
           ||Criteria||Status||Closeout Notes/Links||
           |Patches upstream implementing PKCS#11 dual purpose cryptographic functions in OP-TEE (Armv7-A and Armv8-A)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
           |Patches upstream enabling tests for the PKCS#11 dual purpose cryptographic support |(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          | C_DigestEncryptUpdate implemented/upstream |(x)| |
+          | C_DecryptDigestUpdate implemented/upstream |(x)| |
+          | C_SignEncryptUpdate implemented/upstream |(x)| |
+          | C_DecryptVerifyUpdate implemented/upstream |(x)| |
 
           Legend:
           ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||

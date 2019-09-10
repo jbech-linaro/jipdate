@@ -46,6 +46,19 @@ description:
           ||Criteria||Status||Closeout Notes/Links||
           |Patches upstream implementing PKCS#11 subset of RSA mechanisms mentioned in the deliverables section in OP-TEE (Armv7-A and Armv8-A)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
           |Patches upstream enabling tests for the PKCS#11 subset of RSA mechanisms |(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          | CKM_RSA_PKCS, implemented/upstream |(x)| |
+          | CKM_RSA_PKCS_OAEP, implemented/upstream |(x)| |
+          | CKM_RSA_PKCS_PSS, implemented/upstream |(x)| |
+          | CKM_RSA_X_509, implemented/upstream |(x)| |
+          | CKM_SHA1_RSA_PKCS, implemented/upstream |(x)| |
+          | CKM_SHA256_RSA_PKCS, implemented/upstream |(x)| |
+          | CKM_SHA384_RSA_PKCS, implemented/upstream |(x)| |
+          | CKM_SHA512_RSA_PKCS, implemented/upstream |(x)| |
+          | CKM_SHA1_RSA_PKCS_PSS, implemented/upstream |(x)| |
+          | CKM_SHA256_RSA_PKCS_PSS, implemented/upstream |(x)| |
+          | CKM_SHA384_RSA_PKCS_PSS, implemented/upstream |(x)| |
+          | CKM_SHA512_RSA_PKCS_PSS, implemented/upstream |(x)| |
+          | CKM_RSA_PKCS_KEY_PAIR_GEN, implemented/upstream |(x)| |
 
           Legend:
           ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||

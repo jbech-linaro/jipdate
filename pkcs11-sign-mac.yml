@@ -40,6 +40,14 @@ description:
           ||Criteria||Status||Closeout Notes/Links||
           |Patches upstream implementing PKCS#11 signature and MAC API in OP-TEE (Armv7-A and Armv8-A)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
           |Patches upstream enabling tests for the PKCS#11 signature and MAC API |(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          | C_Sign() implemented/upstream |(x)| |
+          | C_SignInit() implemented/upstream |(x)| |
+          | C_SignUpdate() implemented/upstream |(x)| |
+          | C_SignFinal() implemented/upstream |(x)| |
+          | C_Verify() implemented/upstream |(x)| |
+          | C_VerifyInit() implemented/upstream |(x)| |
+          | C_VerifyUpdate() implemented/upstream |(x)| |
+          | C_VerifyFinal() implemented/upstream |(x)| |
 
           Legend:
           ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||

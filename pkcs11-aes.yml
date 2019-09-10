@@ -2,7 +2,6 @@ project: SWG
 lead_project: Open Source Security
 label:
 upstream: "Yes"
-acceptance_criteria:
 time_estimate: 6
 issuetype: Epic
 summary: PKCS#11 - AES mechanisms
@@ -10,7 +9,7 @@ epic_name: PKCS#11 - AES mechanisms
 description:
         - |
           h1. Deliverables
-This Epic is about implementing support for a subset of the [AES mechanisms|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/csprd02/pkcs11-curr-v2.40-csprd02.html#_Toc387327804] defined by PKCS#11. By subset we have tried identify the most commonly used mechanisms. The list of PKCS#11 mechanisms that we intend to implement in this Epic are:
+          This Epic is about implementing support for a subset of the [AES mechanisms|http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/csprd02/pkcs11-curr-v2.40-csprd02.html#_Toc387327804] defined by PKCS#11. By subset we have tried identify the most commonly used mechanisms. The list of PKCS#11 mechanisms that we intend to implement in this Epic are:
           * CKM_AES_ECB
           * CKM_AES_CBC
           * CKM_AES_CBC_PAD
@@ -42,13 +41,22 @@ This Epic is about implementing support for a subset of the [AES mechanisms|http
           If any of the above are needed, then we are going to create additional Epics for those.
 
           h1. Risks and Assumptions
-          Assumptions: possible to implement this as a standalone component.
+          Assumptions, possible to implement this as a standalone component.
 
           h1. Acceptance Criteria
-          |
           ||Criteria||Status||Closeout Notes/Links||
           |Patches upstream implementing PKCS#11 subset of AES mechanisms mentioned in the deliverables section in OP-TEE (Armv7-A and Armv8-A)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
           |Patches upstream enabling tests for the PKCS#11 subset of AES mechanisms |(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ]|
+          |CKM_AES_ECB implemented/upstream |(x)| |
+          |CKM_AES_CBC implemented/upstream |(x)| |
+          |CKM_AES_CBC_PAD implemented/upstream |(x)| |
+          |CKM_AES_CTR implemented/upstream |(x)| |
+          |CKM_AES_CTS implemented/upstream |(x)| |
+          |CKM_AES_MAC_GENERAL implemented/upstream |(x)| |
+          |CKM_AES_MAC implemented/upstream |(x)| |
+          |CKM_AES_OFB implemented/upstream |(x)| |
+          |CKM_AES_KEY_GEN implemented/upstream |(x)| |
 
-          Legend:
+          Legend
           ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||
+
