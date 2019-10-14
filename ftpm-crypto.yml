@@ -1,0 +1,37 @@
+project: SWG
+lead_project: Dependable Boot
+label:
+upstream: "Yes"
+acceptance_criteria:
+time_estimate: 10w
+issuetype: Epic
+summary: fTPM - Replace WolfSSL with crypto from GP interfaces
+epic_name: fTPM - Replace WolfSSL with crypto from GP interfaces
+description:
+        - |
+          h1. Deliverables
+          The current [fTPM Trusted Application from Microsoft|https://github.com/microsoft/ms-tpm-20-ref/tree/master/Samples/ARM32-FirmwareTPM/optee_ta/fTPM] leverage the WolfSSL crypto library for all cryptographic operations. This is problematic for a couple of reasons.
+          1) WolfSSL (free version) is a GPLv2 library.
+          2) Directly using a crypto library creates a direct dependency to that particular library.
+
+          GlobalPlatform have created a crypto API in [GlobalPlatform TEE Internal Core API Specification v1.x.x|https://globalplatform.org/specs-library/?filter-committee=tee], which is something that is fully supported by OP-TEE. What that achieves is that Trusted Applications who follows the GP standard will work on any TEE regardless the underlying crypto implementation (could be software and even hardware). So by replacing WolfSSL with GP crypto API calls, one doesn't have to worry about potential license issues and one doesn't have to think about downloading a separate crypto library and the Trusted Application could potentially benefit from hardware acceleration as well.  As a result the fTPM users will have a more coherent fTPM solution.
+
+
+          h1. Out of Scope
+          N/A
+
+          h1. Risks and Assumptions
+          We should start this work by reaching out to the Microsoft engineers behind the fTPM project trying to explain why it's a good idea to replace WolfSSL with the GP crypto API. Hopefully they agree on this, which also means that we can work directly against their upstream tree instead of having to maintain our own fork ([see Joakim Bechs fTPM fork which Linaro currently are using|https://github.com/jbech-linaro/ms-tpm-20-ref/tree/ftpm]). If we don't get into agreement with Microsoft on that point, then the solution will be to keep using our current fork. Technically and implementation wise that might be easier, but in the long run this means additional technical debt.
+
+          The technical challenges for Microsoft is that their fTPM solution is also compatible with Intel's secure solution (which is not(?) following GlobalPlatform standards).
+
+
+          h1. Acceptance Criteria Example and Notes (Optional)
+          |
+          ||Criteria||Status||Closeout Notes/Links||
+          |All crypto calls to WolfSSL have been replace with GlobalPlatform calls|(x)| |
+          |Code have been upstreamed to MS official tree (or to the fork)|(x)|Patches can be found [here (FIXME update link) |https://github.com/XYZ] |
+          |The TPM test suite passes with no regressions|(x)| Link to a test log proving this |
+
+          Legend:
+          ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||
