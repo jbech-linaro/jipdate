@@ -1,0 +1,22 @@
+project: SWG
+lead_project: Dependable Boot
+label:
+upstream: "Yes"
+acceptance_criteria:
+time_estimate: 0
+issuetype: Epic
+summary: fTPM - dummy
+epic_name: fTPM - dummy
+description:
+        - |
+          h1. Deliverables
+
+          h1. Out of Scope
+          N/A
+
+          h1. Risks and Assumptions
+
+          h1. Acceptance Criteria Example and Notes (Optional)
+
+          Legend:
+          ||(/) Done, (x) Not Done, (!) Doesn't apply (note the reason)||
