@@ -22,6 +22,7 @@ JQL = "project={} AND issuetype in (Epic) AND status not in (Resolved, Closed)"
 # JQL = "project={} AND key in (SWG-320) AND issuetype in (Epic) AND status not in (Resolved, Closed)"
 
 IGNORE_LIST = []
+DRY_RUN = False
 
 ###############################################################################
 # Argument parser
@@ -37,6 +38,10 @@ def get_parser():
                         default=False,
                         help='Create ignore list (ignore_estimate.txt) fully \
                               populated')
+
+    parser.add_argument('--dry-run', required=False, action="store_true",
+                        default=False,
+                        help='Avoid doing any updates to the Jira database')
 
     parser.add_argument('-i', required=False, action="store_true",
                         default=False,
@@ -184,7 +189,14 @@ def update_initiative(jira, initiative, fte_next, fte_remain):
 
 
 def update_initiative_estimates(jira, initiatives):
+    global DRY_RUN
+    global IGNORE_LIST
     for i, e in initiatives.items():
+
+        # Don't spend time iterating over cards that we don't want to touch
+        if i in IGNORE_LIST:
+            continue
+
         initiative = jira.issue(i)
         print("\nWorking with Initiative {}: {}".
               format(initiative.key, initiative.fields.summary))
@@ -198,17 +210,22 @@ def update_initiative_estimates(jira, initiatives):
             # Add up everything
             fte_remaining += est
             # Add up things for the next cycle
-            if hasattr(epic.fields, "labels") and \
-                    "NEXT-CYCLE" in epic.fields.labels:
+            if (hasattr(epic.fields, "labels") and
+                    "NEXT-CYCLE" in epic.fields.labels) \
+                    or \
+                    ((epic.fields.customfield_12200 is not None) and
+                     ("1 - Next cycle" in epic.fields.customfield_12200)):
                 fte_next_cycle += est
         fte_next_nbr_months = to_months(fte_next_cycle)
         fte_remain_nbr_months = to_months(fte_remaining)
-        print("  Initiative {} Current(N/R): {}/{}: True(N/R): {}/{}".format(
-            i,
+        dry_run = "[DRY-RUN]" if DRY_RUN else ""
+        print(" {} Initiative {} Current(N/R): {}/{}: True(N/R): {}/{}".format(
+            dry_run, i,
             get_fte_next_cycle(initiative), get_fte_remaining(initiative),
             fte_next_nbr_months, fte_remain_nbr_months))
-        update_initiative(jira, initiative, fte_next_nbr_months,
-                          fte_remain_nbr_months)
+        if not DRY_RUN:
+            update_initiative(jira, initiative, fte_next_nbr_months,
+                              fte_remain_nbr_months)
 
 
 def create_ignore_list(jira, key):
@@ -275,6 +292,7 @@ def initiate_config():
 def main(argv):
     global JQL
     global IGNORE_LIST
+    global DRY_RUN
     parser = get_parser()
 
     # The parser arguments (cfg.args) are accessible everywhere after this
@@ -288,6 +306,10 @@ def main(argv):
     key = "SWG"
 
     jira, username = jiralogin.get_jira_instance(cfg.args.t)
+
+    if cfg.args.dry_run:
+        print("Running in dry-run mode, i.e., no updates will be made!")
+        DRY_RUN = True
 
     if cfg.args.project:
         key = cfg.args.project
