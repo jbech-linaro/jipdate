@@ -23,6 +23,7 @@ JQL = "project={} AND issuetype in (Epic) AND status not in (Resolved, Closed)"
 
 IGNORE_LIST = []
 DRY_RUN = False
+NEXT_CYCLE_UPDATE = False
 
 ###############################################################################
 # Argument parser
@@ -42,6 +43,10 @@ def get_parser():
     parser.add_argument('--dry-run', required=False, action="store_true",
                         default=False,
                         help='Avoid doing any updates to the Jira database')
+
+    parser.add_argument('--next-cycle-updates', required=False, action="store_true",
+                        default=False,
+                        help='Also update the next cycle field in Initiatives')
 
     parser.add_argument('-i', required=False, action="store_true",
                         default=False,
@@ -183,8 +188,10 @@ def update_initiative(jira, initiative, fte_next, fte_remain):
               format(initiative.key))
         return
 
-    print("  Updating FTE's in {}".format(initiative.key))
-    update_fte_next_cycle(initiative, fte_next)
+    ftes = "Next and Remaining" if NEXT_CYCLE_UPDATE else "Remaining only"
+    print("  Updating FTE's ({}) in {}".format(ftes, initiative.key))
+    if NEXT_CYCLE_UPDATE:
+        update_fte_next_cycle(initiative, fte_next)
     update_fte_remaining(initiative, fte_remain)
 
 
@@ -293,6 +300,7 @@ def main(argv):
     global JQL
     global IGNORE_LIST
     global DRY_RUN
+    global NEXT_CYCLE_UPDATE
     parser = get_parser()
 
     # The parser arguments (cfg.args) are accessible everywhere after this
@@ -310,6 +318,9 @@ def main(argv):
     if cfg.args.dry_run:
         print("Running in dry-run mode, i.e., no updates will be made!")
         DRY_RUN = True
+
+    if cfg.args.next_cycle_updates:
+        NEXT_CYCLE_UPDATE = True
 
     if cfg.args.project:
         key = cfg.args.project
