@@ -217,11 +217,12 @@ def update_initiative_estimates(jira, initiatives):
             # Add up everything
             fte_remaining += est
             # Add up things for the next cycle
+            planned_for_field = epic.fields.customfield_12200;
             if (hasattr(epic.fields, "labels") and
                     "NEXT-CYCLE" in epic.fields.labels) \
                     or \
-                    ((epic.fields.customfield_12200 is not None) and
-                     ("1 - Next cycle" in epic.fields.customfield_12200)):
+                    ((planned_for_field is not None) and
+                     ("1 - Next cycle" in getattr(planned_for_field, "value"))):
                 fte_next_cycle += est
         fte_next_nbr_months = to_months(fte_next_cycle)
         fte_remain_nbr_months = to_months(fte_remaining)
