@@ -246,21 +246,5 @@ username
 If this exists in the config, then jipdate will **not** ask for the username
 when running the script (see the :ref:`example_config` for the syntax).
 
-.. _password:
-
-password
---------
-This is similar to the ``username`` above, i.e., if your Jira password is
-stored here, then jipdate won't ask for it when running the script.
-
-.. warning::
-
-    Storing your password here in clear text requires some extra precaution,
-    since anyone with access to your computer can rather easy read the contents
-    of this file. I.e., it's not really recommended to use this feature, you're
-    better off just typing the password when running the script or export
-    ``JIRA_PASSWORD`` as an enviroment variable, when you need to run script
-    multiple times in row and don't want to type it in each and every time.
-
 
 .. _YAML format: https://yaml.org/spec/1.2/spec.html

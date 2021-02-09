@@ -27,5 +27,5 @@ thereby avoid having to enter them every time you run Jipdate.
     By exporting ``JIRA_PASSWORD`` there is a chance that the password end up in
     the history of your shell (bash, zsh etc).
 
-The same can be achieved by storing the credentials in :ref:`username` and
-:ref:`password` in the :ref:`config_file`.
+For :ref:`username` the same can be achieved by storing it in the
+:ref:`config_file`.
