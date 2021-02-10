@@ -81,6 +81,10 @@ def get_parser():
     """ Takes care of script argument parsing. """
     parser = ArgumentParser(description='Script used to update comments in Jira')
 
+    parser.add_argument('-c', required=False, action="store_true", \
+            default=False, \
+            help='Use the cloud server')
+
     parser.add_argument('-e', required=False, action="store_true", \
             default=False, \
             help='Only include epics (no initiatives or stories). Used in combination \
@@ -250,7 +254,9 @@ def should_update():
         if cfg.server == cfg.PRODUCTION_SERVER:
             target = "OFFICIAL!"
         elif cfg.server == cfg.TEST_SERVER:
-            target = "TEST"
+            target = "TEST!"
+        elif cfg.server == cfg.CLOUD_SERVER:
+            target = "CLOUD!"
 
         print("Server to update: %s" % target)
         print(" %s\n" % cfg.server);
@@ -511,7 +517,7 @@ def main(argv):
         parser.print_help()
         sys.exit(os.EX_USAGE)
 
-    jira, username = jiralogin.get_jira_instance(cfg.args.t)
+    jira, username = jiralogin.get_jira_instance(cfg.args.t, cfg.args.c)
 
     if cfg.args.x or cfg.args.e:
         if not cfg.args.q:

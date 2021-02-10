@@ -1,3 +1,4 @@
+import sys
 import os
 import getpass
 import logging as log
@@ -87,21 +88,46 @@ def get_password():
     return password
 
 
-def get_jira_instance(use_test_server):
+def get_token():
+    """
+    Get the access token from the configuration file.
+    """
+    auth_token = None
+    # First check if the username is in the config file.
+    try:
+        auth_token = cfg.yml_config['auth-token']
+    except:
+        log.debug("Auth token not found in the config file")
+
+    return auth_token
+
+
+def get_jira_instance(use_test_server, use_cloud_server):
     """
     Makes a connection to the Jira server and returns the Jira instance to the
     caller.
     """
     username = get_username()
     password = get_password()
+    token = get_token()
 
     credentials=(username, password)
 
     if use_test_server:
         cfg.server = cfg.TEST_SERVER
+    elif use_cloud_server:
+        cfg.server = cfg.CLOUD_SERVER
 
     try:
-        j = JIRA(cfg.server, basic_auth=credentials), username
+        if token is not None:
+            log.debug("Accessing Jira using token based authentication")
+            options = {
+             'server': cfg.server
+            }
+            j = JIRA(options, basic_auth=(username, token))
+            return j, username
+        else:
+            j = JIRA(cfg.server, basic_auth=credentials), username
     except JIRAError as e:
         if e.text.find('CAPTCHA_CHALLENGE') != -1:
             log.error('Captcha verification has been triggered by '\

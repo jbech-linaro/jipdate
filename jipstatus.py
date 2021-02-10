@@ -128,6 +128,10 @@ def get_parser():
     """ Takes care of script argument parsing. """
     parser = ArgumentParser(description='Script used to update comments in Jira')
 
+    parser.add_argument('-c', required=False, action="store_true", \
+            default=False, \
+            help='Use the cloud server')
+
     parser.add_argument('--test', required=False, action="store_true", \
             default=False, \
             help='Use the test server')
@@ -256,7 +260,7 @@ def main(argv):
     # accessible everywhere after this call.
     cfg.initiate_config()
 
-    jira, username = jiralogin.get_jira_instance(cfg.args.test)
+    jira, username = jiralogin.get_jira_instance(cfg.args.test, cfg.args.c)
 
     if cfg.args.user is None:
         cfg.args.user = username

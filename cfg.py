@@ -3,6 +3,7 @@ import os
 import sys
 import yaml
 
+CLOUD_SERVER = 'https://linaro.atlassian.net'
 TEST_SERVER = 'https://dev-projects.linaro.org'
 PRODUCTION_SERVER = 'https://projects.linaro.org'
 server = PRODUCTION_SERVER
@@ -58,7 +59,10 @@ use_combined_issue_header: False
 # Default separator in the issue header, change to the separator of your own
 # preference.
 separator: ' | '
-text-editor: True"""
+text-editor: True
+
+# Uncomment and add your token below for token based login
+#auth-token: <my-auth-token>"""
     global config_path
     global config_filename
 

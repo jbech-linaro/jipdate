@@ -62,6 +62,17 @@ You will need to re-run the script after making a changes to the config file.
 Config options
 ==============
 
+auth-token
+----------
+If you prefer or must use a token based login, then you should set the
+``auth-token`` variable in config-file. You can retrieve the token by doing the
+following:
+
+* Go to https://id.atlassian.com/manage-profile/profile-and-visibility
+* Click on "Security" (left hand side)
+* Click on "Create and manage API tokens"
+* Click on "Create API token"
+
 
 comments
 --------
